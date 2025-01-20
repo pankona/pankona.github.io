@@ -2,10 +2,12 @@ baseURL = "https://pankona.github.io"
 title = "make clean; make"
 hasCJKLanguage = true
 author = "pankona"
-Paginate = 20
 pygmentsUseClasses = true
 pygmentsCodefences = true
 pygmentsStyle = "monokai"
+
+[pagination]
+  pagerSize = 20
 
 [module]
   [[module.imports]]
