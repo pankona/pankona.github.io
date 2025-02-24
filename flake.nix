@@ -1,7 +1,7 @@
 {
   inputs = {
     # How to update the revision: `nix flake update --commit-lock-file`
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs =
@@ -39,7 +39,7 @@
               dprint
 
               hugo
-              go_1_23
+              go_1_24
               dart-sass
 
               firebase-tools
