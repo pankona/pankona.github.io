@@ -19,7 +19,7 @@ jobs:
         run: |
           curl -fsSL https://dprint.dev/install.sh | sh -s '0.45.0' > /dev/null 2>&1
           echo "/home/runner/.dprint/bin" >> "$GITHUB_PATH"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Needed to specify token for checkout phase, only in push phase is too late
           # https://github.com/orgs/community/discussions/27072#discussioncomment-3254515
