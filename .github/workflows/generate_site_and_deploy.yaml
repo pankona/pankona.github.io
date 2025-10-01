@@ -30,7 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-hugo-${{ env.HUGO_VERSION }}-hugomod-
       - name: Set up Go # Required go env because of hugo module depends on it.
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
           cache-dependency-path: 'go.sum'

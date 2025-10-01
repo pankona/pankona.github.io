@@ -36,7 +36,7 @@ jobs:
           title=`echo $title | xargs`
           echo "title=${title// /-}" | tee -a "$GITHUB_OUTPUT"
       - name: setup go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: 'tool/go.mod'
           cache-dependency-path: 'tool/go.sum'
