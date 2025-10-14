@@ -1,0 +1,3 @@
+[default.extend-words]
+# 意図的に使用している造語・固有名詞
+Androider = "Androider"
