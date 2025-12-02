@@ -1,0 +1,5 @@
+[global]
+# List of rules to enable exclusively (if provided, only these rules will run)
+enable = [
+  "MD040", # fenced-code-language
+]

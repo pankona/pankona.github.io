@@ -16,5 +16,7 @@
   "[go]": {
     "editor.defaultFormatter": "golang.go"
   },
+  "rumdl.configPath": ".rumdl.toml",
+  "rumdl.server.path": "rumdl",
   "redhat.telemetry.enabled": false
 }
