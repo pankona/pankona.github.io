@@ -6,10 +6,11 @@ nix --version
 hugo version
 sass --version
 go version
+firebase --version
 make --version
 dprint --version
 typos --version
-convert --version
+magick --version
 actionlint --version
 ls --version
 nixfmt --version
