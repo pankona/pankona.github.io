@@ -44,7 +44,7 @@
 
               firebase-tools
 
-              markdownlint-cli2
+              rumdl
 
               yaml-language-server
             ];
