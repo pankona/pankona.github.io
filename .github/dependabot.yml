@@ -4,10 +4,6 @@ updates:
     directory: '/'
     schedule:
       interval: 'monthly'
-    ignore:
-      # They do not support specifying a version in the latest action. Therefore, we need to pin the version for nixpkgs compatibility.
-      # See https://github.com/DavidAnson/markdownlint-cli2-action/issues/94 for detail
-      - dependency-name: 'DavidAnson/markdownlint-cli2-action'
   - package-ecosystem: 'gomod'
     directory: '/'
     schedule:
