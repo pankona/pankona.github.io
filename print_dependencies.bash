@@ -17,4 +17,4 @@ nixfmt --version
 nixd --version
 peco --version
 vim --version | sed -n '1p'
-markdownlint-cli2 --version | grep 'markdownlint v'
+rumdl --version
