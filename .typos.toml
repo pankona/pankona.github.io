@@ -6,7 +6,7 @@ Androider = "Androider"
 extend-ignore-words-re = [
   # 偽陽性検知を減らすために3文字以下を無視する。
   # https://github.com/pankona/pankona.github.io/pull/404#issuecomment-3833238163
-  # 公式ドキュメンでも4文字以下を無効化する例が挙げられているし、ここは柔軟に延ばして良い
+  # 公式ドキュメントでも4文字以下を無効化する例が挙げられているし、ここは柔軟に延ばして良い
   # https://github.com/crate-ci/typos/issues/1079 が実装された際は更新すること
   "^[a-zA-Z]{1,3}$",
 ]
