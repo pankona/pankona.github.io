@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Wait other jobs
         # if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
-        uses: kachick/wait-other-jobs@v3.8.1
+        uses: kachick/wait-other-jobs@v4.0.0
         timeout-minutes: 30
       - name: Approve and merge
         # if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
