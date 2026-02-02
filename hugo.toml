@@ -7,11 +7,11 @@ pygmentsCodefences = true
 pygmentsStyle = "monokai"
 
 [pagination]
-  pagerSize = 20
+pagerSize = 20
 
 [module]
-  [[module.imports]]
-    path = 'github.com/pankona/purehugo'
+[[module.imports]]
+path = 'github.com/pankona/purehugo'
 
 [outputFormats]
 [outputFormats.RSS]
@@ -19,19 +19,19 @@ mediaType = "application/rss+xml"
 baseName = "atom"
 
 [params]
-  description = "Good poem"
-  twitterName = "pankona"
-  twitter = ""
-  githubName = "pankona"
-  google_analytics = "UA-48476608-2"
-  image = "https://avatars1.githubusercontent.com/u/6533008?s=460&v=4"
-  paginate = 20
+description = "Good poem"
+twitterName = "pankona"
+twitter = ""
+githubName = "pankona"
+google_analytics = "UA-48476608-2"
+image = "https://avatars1.githubusercontent.com/u/6533008?s=460&v=4"
+paginate = 20
 
 [permalinks]
-  posts = "/blog/:year/:month/:day/:filename/"
+posts = "/blog/:year/:month/:day/:filename/"
 
 [markup]
-  [markup.goldmark]
-    [markup.goldmark.renderer]
-      unsafe = true
-      hardWraps = true
+[markup.goldmark]
+[markup.goldmark.renderer]
+unsafe = true
+hardWraps = true
