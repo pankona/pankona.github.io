@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Install dprint
         run: |
-          curl -fsSL https://dprint.dev/install.sh | sh -s '0.45.0' > /dev/null 2>&1
+          curl -fsSL https://dprint.dev/install.sh | sh -s '0.47.2' > /dev/null 2>&1
           echo "/home/runner/.dprint/bin" >> "$GITHUB_PATH"
       - uses: actions/checkout@v6
         with:
