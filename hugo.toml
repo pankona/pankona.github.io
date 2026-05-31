@@ -5,13 +5,10 @@ author = "pankona"
 pygmentsUseClasses = true
 pygmentsCodefences = true
 pygmentsStyle = "monokai"
+theme = "purehugo"
 
 [pagination]
 pagerSize = 20
-
-[module]
-[[module.imports]]
-path = 'github.com/pankona/purehugo'
 
 [outputFormats]
 [outputFormats.RSS]
