@@ -1,4 +1,8 @@
 [global]
+# vendoring した外部テーマは校正対象外にする
+exclude = [
+  "themes/",
+]
 # List of rules to enable exclusively (if provided, only these rules will run)
 enable = [
   "MD040", # fenced-code-language
