@@ -138,6 +138,15 @@ h3 {
     /* 日本語本文は行間を広めに取ると読みやすい (旧 1.35 は詰まりすぎ) */
     line-height: 1.8;
 }
+/* トップページ一覧の抜粋だけ2行で切り詰めて高さを揃える
+   (.post-description は list.html / single.html では本文全文に使われるため
+    そちらを切り詰めないよう、一覧専用の .post-summary に限定する) */
+.post-summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 .post-meta {
     color: #6b6b6b;
     font-size: 90%;
