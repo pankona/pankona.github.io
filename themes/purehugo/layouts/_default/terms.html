@@ -1,0 +1,29 @@
+{{ partial "header.html" . }}
+
+<div id="layout" class="pure-g">
+    {{ partial "sidebar.html" . }}
+
+    <div class="content pure-u-1 pure-u-md-3-4">
+        <div>
+            <h1 class="category-index-title">{{ .Title }}</h1>
+
+            {{ with .Data.Terms.ByCount }}
+            <ul class="category-index">
+                {{ range . }}
+                <li>
+                    <a class="category-index-item" href="{{ .Page.Permalink }}">
+                        <span class="category-index-name">{{ .Page.Title }}</span>
+                        <span class="category-index-count">{{ .Count }}</span>
+                    </a>
+                </li>
+                {{ end }}
+            </ul>
+            {{ end }}
+
+            {{ partial "footer.html" . }}
+        </div>
+    </div>
+</div>
+{{ partial "analytics.html" . }}
+</body>
+</html>
