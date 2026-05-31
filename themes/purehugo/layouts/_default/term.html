@@ -1,0 +1,31 @@
+{{ partial "header.html" . }}
+
+<div id="layout" class="pure-g">
+  {{ partial "sidebar.html" . }}
+
+  <div class="content pure-u-1 pure-u-md-3-4">
+    <div>
+      <h1 class="category-index-title">{{ .Title }}</h1>
+
+      <!-- A wrapper for all the blog posts -->
+      <div class="posts">
+        {{ range .Paginator.Pages }}
+          <article>
+            <!-- this <div> includes the title summary -->
+            <div>
+                <div class="content-subhead" style="border-bottom:none">{{ dateFormat "2006-01-02 15:04:05" .Date }}</div>
+                <div><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>
+                <div class="post-description post-summary">{{ .Summary }}</div>
+            </div>
+            <hr>
+          </article>
+        {{ end }}
+      </div>
+      {{ partial "pagination.html" . }}
+      {{ partial "footer.html" . }}
+    </div>
+  </div>
+</div>
+{{ partial "analytics.html" . }}
+</body>
+</html>
