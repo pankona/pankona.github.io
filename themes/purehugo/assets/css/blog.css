@@ -233,6 +233,59 @@ h3 {
     color:#aaa
 }
 
+/* カテゴリ一覧 (/categories/) はタクソノミー terms ページ。
+   記事一覧用の list.html を流用すると意味のない投稿日・空の本文が並ぶため、
+   カテゴリ名と記事数だけを並べる専用レイアウトにしている。 */
+.category-index-title {
+    font-size: 1.8em;
+    color: #222;
+    font-family: "Oxygen", sans-serif;
+    font-weight: bold;
+    margin: 0.4em 0 0.8em;
+}
+.category-index {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6em;
+}
+.category-index-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.4em 0.9em;
+    border: 1px solid #d4dde4;
+    border-radius: 999px;
+    color: rgb(61, 146, 201);
+    background: #fff;
+    text-decoration: none;
+    transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.category-index-item:hover,
+.category-index-item:focus {
+    background: rgb(61, 146, 201);
+    border-color: rgb(61, 146, 201);
+    color: #fff;
+    text-decoration: none;
+}
+.category-index-count {
+    min-width: 1.6em;
+    padding: 0 0.4em;
+    border-radius: 999px;
+    background: #eef3f7;
+    color: #6b6b6b;
+    font-size: 80%;
+    text-align: center;
+    line-height: 1.7;
+}
+.category-index-item:hover .category-index-count,
+.category-index-item:focus .category-index-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
 @media (min-width: 48em) {
     .content {
         padding: 2em 3em 0;
