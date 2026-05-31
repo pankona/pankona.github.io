@@ -13,7 +13,7 @@
             <div>
                 <div class="content-subhead" style="border-bottom:none">{{ dateFormat "2006-01-02 15:04:05" .Date }}</div>
                 <div><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>
-                {{ .Summary }}
+                <div class="post-description">{{ .Summary }}</div>
             </div>
             {{ if .Truncated }}
               <!-- This <div> includes a read more link, but only if the summary is truncated... -->
