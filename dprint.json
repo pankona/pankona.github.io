@@ -1,5 +1,7 @@
 {
-  "excludes": [],
+  "excludes": [
+    "themes/"
+  ],
     "toml": {
   },
   "yaml": {

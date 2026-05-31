@@ -1,3 +1,9 @@
+[files]
+# vendoring した外部テーマは校正対象外にする (上流由来のタイポを含むため)
+extend-exclude = [
+  "themes/",
+]
+
 [default.extend-words]
 # 意図的に使用している造語・固有名詞
 Androider = "Androider"
