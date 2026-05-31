@@ -12,7 +12,8 @@ specific font stacks to ensure the greatest OS/browser compatibility.
 html, button, input, select, textarea,
 .pure-g [class *= "pure-u"] {
     /* Set your content font stack here: */
-    font-family: "Source Sans Pro", serif;
+    /* 和文はゴシック系を優先（旧来は serif フォールバックで明朝になっていた） */
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
 }
 
 a {
@@ -97,7 +98,8 @@ h3 {
 
 .content-subhead {
     text-transform: uppercase;
-    color: #aaa;
+    /* #aaa はコントラスト約2.3:1で WCAG AA 不適合だったため濃く */
+    color: #6b6b6b;
     border-bottom: 1px solid #eee;
     padding: 0.4em 0;
     font-size: 80%;
@@ -107,6 +109,9 @@ h3 {
 
 .content {
     padding: 2em 1em 0;
+    /* 1行が長すぎると視線が迷子になるため読みやすい幅にキャップ
+       (本文フォント約20px・パディング込みで全角40字弱になる) */
+    max-width: 820px;
 }
 
 .post {
@@ -128,12 +133,13 @@ h3 {
     margin-left: 1em;
 }
 .post-description {
-    font-family: "Source Sans Pro", serif;
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
     color: #333;
-    line-height: 1.35em;
+    /* 日本語本文は行間を広めに取ると読みやすい (旧 1.35 は詰まりすぎ) */
+    line-height: 1.8;
 }
 .post-meta {
-    color: #999;
+    color: #6b6b6b;
     font-size: 90%;
     margin: 5px 0;
 }
