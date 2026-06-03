@@ -1,7 +1,7 @@
 {
   inputs = {
     # How to update the revision: `nix flake update --commit-lock-file`
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
   };
 
   outputs =
@@ -26,7 +26,8 @@
               bashInteractive
               coreutils
               findutils # xargs
-              nixfmt-rfc-style
+              nixfmt
+              nixfmt-tree
               nixd
 
               gnumake
@@ -39,7 +40,7 @@
               dprint
 
               hugo
-              go_1_24
+              go_1_26
               dart-sass
 
               firebase-tools
