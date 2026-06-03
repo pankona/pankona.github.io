@@ -16,9 +16,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      HUGO_VERSION: '0.141.0'
-      SASS_VERSION: '1.80.3'
-      DART_SASS_SHA_LINUX: '7c933edbad0a7d389192c5b79393485c088bd2c4398e32f5754c32af006a9ffd'
+      HUGO_VERSION: '0.162.1'
+      SASS_VERSION: '1.100.0'
+      DART_SASS_SHA_LINUX: 'a604a895666b24a7199dc42f3a144f39d7b7f5a7d3261ba7fde54fde5bf03764'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
