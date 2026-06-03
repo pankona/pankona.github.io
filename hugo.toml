@@ -25,7 +25,7 @@ image = "https://avatars1.githubusercontent.com/u/6533008?s=460&v=4"
 paginate = 20
 
 [permalinks]
-posts = "/blog/:year/:month/:day/:filename/"
+posts = "/blog/:year/:month/:day/:contentbasename/"
 
 [markup]
 [markup.goldmark]
