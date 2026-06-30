@@ -126,7 +126,7 @@ func transformBody(body string, dl *imageDownloader) (string, error) {
 		line := scanner.Text()
 		trimmed := strings.TrimSpace(line)
 
-		if strings.HasPrefix(trimmed, "```") {
+		if strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~") {
 			inCode = !inCode
 			out = append(out, line)
 			continue
