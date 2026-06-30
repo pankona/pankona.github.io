@@ -50,12 +50,15 @@ jobs:
           go install .
       - name: commit
         run: |
-          GITHUB_TOKEN=${TOKEN} articlegen --issue-num=${{ github.event.issue.number }} > 'content/posts/${{ steps.normalizer.outputs.title }}.md'
-          dprint fmt 'content/posts/${{ steps.normalizer.outputs.title }}.md'
+          GITHUB_TOKEN=${TOKEN} articlegen \
+            --issue-num=${{ github.event.issue.number }} \
+            --slug='${{ steps.normalizer.outputs.title }}' \
+            --content-dir=content/posts
+          dprint fmt 'content/posts/${{ steps.normalizer.outputs.title }}/index.md'
           git config user.email "yosuke.akatsuka@gmail.com"
           git config user.name "pankona"
           git switch '${{ steps.normalizer.outputs.title }}' || git switch -c '${{ steps.normalizer.outputs.title }}'
-          git add 'content/posts/${{ steps.normalizer.outputs.title }}.md'
+          git add 'content/posts/${{ steps.normalizer.outputs.title }}'
           git commit -m "add post ${{ steps.normalizer.outputs.title }}"
       - name: push
         env:
