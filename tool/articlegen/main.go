@@ -207,7 +207,7 @@ func rewriteImages(line string, dl *imageDownloader) (string, error) {
 		if m := htmlAltRe.FindStringSubmatch(tag); len(m) >= 2 {
 			alt = m[1]
 		}
-		if alt == "" || strings.EqualFold(alt, "image") {
+		if alt == "" {
 			alt = "image"
 		}
 		return fmt.Sprintf("![%s](%s)", alt, filename)
