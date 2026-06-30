@@ -1,0 +1,22 @@
+{{- /*
+  Extract the first matching OG/Twitter meta value from HTML.
+  Params:
+    html: full HTML source
+    keys: slice of meta keys to try in order (e.g. "og:title", "twitter:title")
+  Returns the first non-empty match as a raw string (HTML entities preserved),
+  or empty string. Use `return` so the value is not wrapped in template.HTML.
+*/ -}}
+{{- $html := .html -}}
+{{- $keys := .keys -}}
+{{- $result := "" -}}
+{{- range $key := $keys -}}
+  {{- if eq $result "" -}}
+    {{- $patPC := printf `<meta[^>]+(?:property|name)=["']%s["'][^>]+content=["']([^"']*)["']` $key -}}
+    {{- $patCP := printf `<meta[^>]+content=["']([^"']*)["'][^>]+(?:property|name)=["']%s["']` $key -}}
+    {{- range first 1 (findRESubmatch $patPC $html) -}}{{- $result = index . 1 -}}{{- end -}}
+    {{- if eq $result "" -}}
+      {{- range first 1 (findRESubmatch $patCP $html) -}}{{- $result = index . 1 -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $result -}}

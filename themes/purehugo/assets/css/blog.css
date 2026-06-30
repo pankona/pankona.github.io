@@ -303,3 +303,86 @@ h3 {
         bottom: 0;
     }
 }
+
+/* 生 URL を OGP カード化する linkcard ショートコード用スタイル */
+.linkcard {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid #d4dde4;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+    color: #333 !important;
+    text-decoration: none !important;
+    margin: 1em 0;
+    max-width: 100%;
+    transition: box-shadow .2s ease, border-color .2s ease;
+}
+.linkcard:hover,
+.linkcard:focus {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-color: rgb(61, 146, 201);
+    text-decoration: none !important;
+}
+.linkcard-body {
+    flex: 1 1 auto;
+    padding: 0.8em 1em;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+}
+.linkcard-title {
+    font-weight: bold;
+    font-size: 1em;
+    color: #222;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.linkcard-desc {
+    font-size: 0.85em;
+    color: #555;
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.linkcard-site {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.8em;
+    color: #6b6b6b;
+    margin-top: auto;
+}
+.linkcard-favicon {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border-radius: 0;
+    flex-shrink: 0;
+    display: inline-block;
+}
+.linkcard-image {
+    flex: 0 0 auto;
+    width: 200px;
+    overflow: hidden;
+    background: #f3f3f3;
+}
+.linkcard-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0;
+    border-radius: 0;
+    display: block;
+}
+@media (max-width: 480px) {
+    .linkcard-image {
+        width: 110px;
+    }
+}
