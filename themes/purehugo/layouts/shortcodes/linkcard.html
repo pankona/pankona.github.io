@@ -1,0 +1,46 @@
+{{- $url := .Get 0 -}}
+{{- $parsed := urls.Parse $url -}}
+{{- $cardHost := $parsed.Host -}}
+{{- $cardTitle := "" -}}
+{{- $cardDesc := "" -}}
+{{- $cardImage := "" -}}
+{{- $cardSite := "" -}}
+{{- with try (resources.GetRemote $url) -}}
+  {{- with .Err -}}
+    {{- warnf "linkcard: fetch failed for %s: %s" $url . -}}
+  {{- else with .Value -}}
+    {{- $html := .Content -}}
+    {{- $cardTitle = partial "ogmeta.html" (dict "html" $html "keys" (slice "og:title" "twitter:title")) -}}
+    {{- $cardDesc = partial "ogmeta.html" (dict "html" $html "keys" (slice "og:description" "twitter:description")) -}}
+    {{- $cardImage = partial "ogmeta.html" (dict "html" $html "keys" (slice "og:image" "twitter:image")) -}}
+    {{- $cardSite = partial "ogmeta.html" (dict "html" $html "keys" (slice "og:site_name")) -}}
+  {{- end -}}
+{{- end -}}
+{{- if eq $cardTitle "" -}}{{- $cardTitle = $url -}}{{- end -}}
+{{- if eq $cardSite "" -}}{{- $cardSite = $cardHost -}}{{- end -}}
+{{- if $cardImage -}}
+  {{- $imgParsed := urls.Parse $cardImage -}}
+  {{- if not $imgParsed.IsAbs -}}
+    {{- if hasPrefix $cardImage "//" -}}
+      {{- $cardImage = printf "%s:%s" $parsed.Scheme $cardImage -}}
+    {{- else if hasPrefix $cardImage "/" -}}
+      {{- $cardImage = printf "%s://%s%s" $parsed.Scheme $parsed.Host $cardImage -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+<a class="linkcard{{ if not $cardImage }} linkcard--noimage{{ end }}" href="{{ $url | safeURL }}" target="_blank" rel="noopener noreferrer">
+  <div class="linkcard-body">
+    <div class="linkcard-title">{{ $cardTitle | htmlUnescape | htmlEscape | safeHTML }}</div>
+    {{- if $cardDesc }}
+    <div class="linkcard-desc">{{ $cardDesc | htmlUnescape | htmlEscape | safeHTML }}</div>
+    {{- end }}
+    <div class="linkcard-site">
+      <span>{{ $cardSite | htmlUnescape | htmlEscape | safeHTML }}</span>
+    </div>
+  </div>
+  {{- if $cardImage }}
+  <div class="linkcard-image">
+    <img src="{{ $cardImage | htmlUnescape | safeURL }}" alt="" loading="lazy">
+  </div>
+  {{- end }}
+</a>
