@@ -18,6 +18,16 @@
 {{- end -}}
 {{- if eq $cardTitle "" -}}{{- $cardTitle = $url -}}{{- end -}}
 {{- if eq $cardSite "" -}}{{- $cardSite = $cardHost -}}{{- end -}}
+{{- if $cardImage -}}
+  {{- $imgParsed := urls.Parse $cardImage -}}
+  {{- if not $imgParsed.IsAbs -}}
+    {{- if hasPrefix $cardImage "//" -}}
+      {{- $cardImage = printf "%s:%s" $parsed.Scheme $cardImage -}}
+    {{- else if hasPrefix $cardImage "/" -}}
+      {{- $cardImage = printf "%s://%s%s" $parsed.Scheme $parsed.Host $cardImage -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 <a class="linkcard{{ if not $cardImage }} linkcard--noimage{{ end }}" href="{{ $url | safeURL }}" target="_blank" rel="noopener noreferrer">
   <div class="linkcard-body">
     <div class="linkcard-title">{{ $cardTitle | htmlUnescape | htmlEscape | safeHTML }}</div>
