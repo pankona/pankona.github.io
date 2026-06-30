@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -286,7 +287,7 @@ func (d *imageDownloader) fetch(url string) (name string, err error) {
 
 	d.counter++
 	buf := &bytes.Buffer{}
-	if _, err := io.CopyN(buf, resp.Body, 512); err != nil && err != io.EOF {
+	if _, err := io.CopyN(buf, resp.Body, 512); err != nil && !errors.Is(err, io.EOF) {
 		return "", err
 	}
 	ext := extFromContentType(resp.Header.Get("Content-Type"))
