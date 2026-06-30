@@ -28,6 +28,19 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
+{{- $favicon := "" -}}
+{{- if and $parsed.Scheme $parsed.Host -}}
+  {{- $faviconURL := printf "%s://%s/favicon.ico" $parsed.Scheme $parsed.Host -}}
+  {{- with try (resources.GetRemote $faviconURL) -}}
+    {{- with .Err -}}
+      {{- /* favicon が無いサイトは珍しくないので静かに諦める */ -}}
+    {{- else with .Value -}}
+      {{- if eq .MediaType.MainType "image" -}}
+        {{- $favicon = .RelPermalink -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 <a class="linkcard{{ if not $cardImage }} linkcard--noimage{{ end }}" href="{{ $url | safeURL }}" target="_blank" rel="noopener noreferrer">
   <div class="linkcard-body">
     <div class="linkcard-title">{{ $cardTitle | htmlUnescape | htmlEscape | safeHTML }}</div>
@@ -35,6 +48,9 @@
     <div class="linkcard-desc">{{ $cardDesc | htmlUnescape | htmlEscape | safeHTML }}</div>
     {{- end }}
     <div class="linkcard-site">
+      {{- if $favicon }}
+      <img class="linkcard-favicon" src="{{ $favicon | safeURL }}" alt="" loading="lazy" width="16" height="16">
+      {{- end }}
       <span>{{ $cardSite | htmlUnescape | htmlEscape | safeHTML }}</span>
     </div>
   </div>

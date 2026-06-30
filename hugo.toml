@@ -15,6 +15,10 @@ pagerSize = 20
 mediaType = "application/rss+xml"
 baseName = "atom"
 
+[mediaTypes]
+[mediaTypes."image/x-icon"]
+suffixes = ["ico"]
+
 [params]
 description = "Good poem"
 twitterName = "pankona"
