@@ -359,14 +359,6 @@ h3 {
     color: #6b6b6b;
     margin-top: auto;
 }
-.linkcard-favicon {
-    width: 16px;
-    height: 16px;
-    margin: 0;
-    border-radius: 0;
-    flex-shrink: 0;
-    display: inline-block;
-}
 .linkcard-image {
     flex: 0 0 auto;
     width: 200px;
