@@ -83,6 +83,10 @@ jobs:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
     steps:
       - uses: actions/checkout@v6
+      - name: Use Node 20 for firebase-tools
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
       - name: Download build assets
         env:
           GH_TOKEN: ${{ github.token }}
