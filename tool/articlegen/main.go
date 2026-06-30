@@ -263,7 +263,7 @@ type imageDownloader struct {
 	counter   int
 }
 
-func (d *imageDownloader) fetch(url string) (string, error) {
+func (d *imageDownloader) fetch(url string) (name string, err error) {
 	if d.cache == nil {
 		d.cache = map[string]string{}
 	}
@@ -297,17 +297,22 @@ func (d *imageDownloader) fetch(url string) (string, error) {
 		ext = ".bin"
 	}
 
-	name := fmt.Sprintf("image-%d%s", d.counter, ext)
+	name = fmt.Sprintf("image-%d%s", d.counter, ext)
 	path := filepath.Join(d.bundleDir, name)
 	out, err := os.Create(path)
 	if err != nil {
 		return "", err
 	}
-	defer out.Close()
-	if _, err := out.Write(buf.Bytes()); err != nil {
+	defer func() {
+		out.Close()
+		if err != nil {
+			os.Remove(path)
+		}
+	}()
+	if _, err = out.Write(buf.Bytes()); err != nil {
 		return "", err
 	}
-	if _, err := io.Copy(out, resp.Body); err != nil {
+	if _, err = io.Copy(out, resp.Body); err != nil {
 		return "", err
 	}
 
