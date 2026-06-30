@@ -312,8 +312,8 @@ h3 {
     border-radius: 6px;
     overflow: hidden;
     background: #fff;
-    color: #333 !important;
-    text-decoration: none !important;
+    color: #333;
+    text-decoration: none;
     margin: 1em 0;
     max-width: 100%;
     transition: box-shadow .2s ease, border-color .2s ease;
@@ -322,7 +322,7 @@ h3 {
 .linkcard:focus {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     border-color: rgb(61, 146, 201);
-    text-decoration: none !important;
+    text-decoration: none;
 }
 .linkcard-body {
     flex: 1 1 auto;
