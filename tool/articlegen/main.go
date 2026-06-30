@@ -294,7 +294,7 @@ func (d *imageDownloader) fetch(url string) (name string, err error) {
 		ext = extFromMagic(buf.Bytes())
 	}
 	if ext == "" {
-		ext = ".bin"
+		return "", fmt.Errorf("articlegen: cannot determine image extension for %s (Content-Type=%q)", url, resp.Header.Get("Content-Type"))
 	}
 
 	name = fmt.Sprintf("image-%d%s", d.counter, ext)
