@@ -97,7 +97,7 @@ jobs:
           mkdir public
           tar -xf ./github-pages/artifact.tar -C public
           tree ./public
-      - uses: FirebaseExtended/action-hosting-deploy@v0.10.0
+      - uses: FirebaseExtended/action-hosting-deploy@v0.11.0
         # dependabot does not have read permission for secrets
         if: github.actor != 'dependabot[bot]'
         with:
