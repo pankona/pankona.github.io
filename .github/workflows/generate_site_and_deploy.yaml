@@ -21,7 +21,7 @@ jobs:
       DART_SASS_SHA_LINUX: 'a604a895666b24a7199dc42f3a144f39d7b7f5a7d3261ba7fde54fde5bf03764'
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Cache hugo resources
         uses: actions/cache@v5
         with:
@@ -82,7 +82,7 @@ jobs:
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Use Node 20 for firebase-tools
         uses: actions/setup-node@v6
         with:
