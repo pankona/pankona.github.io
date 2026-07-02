@@ -9,7 +9,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: crate-ci/typos@v1.47.1
         with:
           # https://github.com/crate-ci/typos/issues/779#issuecomment-1635761199
@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dprint/check@v2.3
       - name: Debug print for deprint target paths
         run: dprint output-file-paths
@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: rvben/rumdl@546bd21b33a0401441a60d8f0c15431458ea6ab9 # v0
         with:
           version: '0.2.5'
