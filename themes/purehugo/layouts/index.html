@@ -9,13 +9,10 @@
       <div class="posts">
         {{ range first 20 .Paginator.Pages }}
           <article>
-            <!-- this <div> includes the title summary -->
-            <div>
-                <div class="content-subhead" style="border-bottom:none">{{ dateFormat "2006-01-02 15:04:05" .Date }}</div>
-                <div><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>
-                <div class="post-description post-summary">{{ .Summary }}</div>
-            </div>
-            <hr>
+            <!-- タイトル → 日付 → 要約 の順で視覚的階層を付ける -->
+            <div><a class="post-list-title" href="{{ .RelPermalink }}">{{ .Title }}</a></div>
+            <div class="post-list-date">{{ dateFormat "2006-01-02" .Date }}</div>
+            <div class="post-description post-summary">{{ .Summary }}</div>
           </article>
           {{ end }}
 

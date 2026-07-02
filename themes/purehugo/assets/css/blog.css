@@ -88,6 +88,25 @@ h3 {
     letter-spacing: 0.1em;
 }
 
+/* トップページ記事一覧のタイポグラフィ。
+   タイトルを最初に・大きく出して流し見でも目に留まるようにし、
+   日付は補足情報としてタイトルの下に小さく添える。 */
+.posts article + article {
+    margin-top: 2em;
+    border-top: 1px solid #eee;
+    padding-top: 2em;
+}
+.post-list-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    line-height: 1.4;
+}
+.post-list-date {
+    color: #6b6b6b;
+    font-size: 85%;
+    margin: 0.3em 0 0.5em;
+}
+
 .content {
     padding: 2em 1em 0;
     /* 1行が長すぎると視線が迷子になるため読みやすい幅にキャップ
