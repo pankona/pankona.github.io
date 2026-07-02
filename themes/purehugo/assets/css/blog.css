@@ -207,32 +207,38 @@ h3 {
     list-style-type: none;
 }
 
-.post-share-links{
-    margin:15px 15px 0 0;
-    float:left;
-    padding: 10px;
-    border: 1px solid #ccc;
-    text-align: center;
+/* 記事下の前後記事ナビ。
+   Hugo の Next は新しい記事・Prev は古い記事なので、
+   時系列に沿って左に新しい記事・右に古い記事を置く。 */
+.post-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em 2em;
+    margin: 1em 0 2em;
+    padding-top: 1.5em;
+    border-top: 1px solid #eee;
+    font-size: 90%;
+    line-height: 1.5;
 }
-
-.post-share-links a{
-    color:#aaa;
-    font-size: 28px;
-    line-height: 36px;
-    margin: 0 auto;
-    display: block;
-    transition: all .3s ease-in;
+.post-nav-newer,
+.post-nav-older {
+    flex: 0 1 48%;
 }
-
-.post-share-links a:hover{
-    color: rgb(61, 146, 201);
-    text-decoration: none;
+.post-nav-older {
+    text-align: right;
+    /* 新しい記事が無い (最新記事の) 場合も右端に寄せる */
+    margin-left: auto;
 }
-
-.post-share-links h4{
-    font-family: "Oxygen", sans-serif;
-    margin:0 0 5px;
-    color:#aaa
+@media (max-width: 47.999em) {
+    .post-nav {
+        flex-direction: column;
+    }
+    .post-nav-newer,
+    .post-nav-older {
+        flex-basis: auto;
+        text-align: left;
+        margin-left: 0;
+    }
 }
 
 /* カテゴリ一覧 (/categories/) はタクソノミー terms ページ。

@@ -8,28 +8,12 @@
             <!-- A wrapper for all the blog posts -->
             <div class="posts">
                 {{ range .Paginator.Pages }}
-                <div class="content-subhead">{{ .Date.Format "2006-01-02 15:04:05" }}</div>
-                <section >
-                    <header class="post-header">
-
-                        <a href="{{ .Permalink }}">{{ .Title }}</a>
-
-                        <p class="post-meta">
-                            {{ with .Params.author }}
-                                By <strong class="post-author">{{ . }}</strong>
-                            {{ end }}
-                            {{ if isset .Params "categories" }}
-                                under 
-                                {{ $baseUrl := .Site.BaseURL }}
-                                {{ range .Params.categories }}<a class="post-category post-category-{{ . }}" href="{{ $baseUrl }}/categories/{{ . | urlize }}">{{ . }}</a>{{ end }}
-                            {{ end }}
-                        </p>
-                    </header>
-
-                    <div class="post-description">
-                        {{ .Content }}
-                    </div>
-                </section>
+                <article>
+                    <!-- タイトル → 日付 → 要約 の順で視覚的階層を付ける (index.html と同形式) -->
+                    <div><a class="post-list-title" href="{{ .RelPermalink }}">{{ .Title }}</a></div>
+                    <div class="post-list-date">{{ dateFormat "2006-01-02" .Date }}</div>
+                    <div class="post-description post-summary">{{ .Summary }}</div>
+                </article>
                 {{ end }}
             </div>
             {{ partial "pagination.html" . }}
@@ -37,6 +21,5 @@
         </div>
     </div>
 </div>
-{{ partial "analytics.html" . }}
 </body>
 </html>
