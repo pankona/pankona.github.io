@@ -4,13 +4,7 @@
     box-sizing: border-box;
 }
 
-/*
-When setting the primary font stack, apply it to the Pure grid units along
-with `html`, `button`, `input`, `select`, and `textarea`. Pure Grids use
-specific font stacks to ensure the greatest OS/browser compatibility.
-*/
-html, button, input, select, textarea,
-.pure-g [class *= "pure-u"] {
+html, button, input, select, textarea {
     /* Set your content font stack here: */
     /* 和文はゴシック系を優先（旧来は serif フォールバックで明朝になっていた） */
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
@@ -75,17 +69,6 @@ h3 {
 .topbar-nav a:focus {
     color: #fff;
     text-decoration: none;
-}
-
-.content-subhead {
-    text-transform: uppercase;
-    /* #aaa はコントラスト約2.3:1で WCAG AA 不適合だったため濃く */
-    color: #6b6b6b;
-    border-bottom: 1px solid #eee;
-    padding: 0.4em 0;
-    font-size: 80%;
-    font-weight: 500;
-    letter-spacing: 0.1em;
 }
 
 /* トップページ記事一覧のタイポグラフィ。

@@ -8,7 +8,9 @@
     {{- /* 記事ページでは記事の要約を、それ以外ではサイトの description を使う */ -}}
     {{- $description := .Site.Params.description -}}
     {{- if .IsPage -}}
-        {{- $description = or .Description (.Summary | plainify | replaceRE `\s+` " " | strings.TrimSpace) -}}
+        {{- /* plainify は HTML エンティティを残すため htmlUnescape で実体文字に戻す
+               (出力時にテンプレートが再エスケープするので二重エスケープにならない) */ -}}
+        {{- $description = or .Description (.Summary | plainify | htmlUnescape | replaceRE `\s+` " " | strings.TrimSpace) -}}
     {{- end }}
     <meta name="description" content="{{ $description }}">
 
@@ -23,9 +25,8 @@
     <meta property="og:description" content="{{ $description }}">
     <meta property="og:image" content="{{ .Site.Params.image }}" />
 
-    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Oxygen:400,700' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Oxygen:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/grids-responsive-min.css">
 
     {{ $css := slice (resources.Get "css/blog.css") (resources.Get "css/poole.css") (resources.Get "css/syntax-highlighter.css") (resources.Get "css/syntax.css") | resources.Concat "css/all.css" | minify | fingerprint }}
     <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
