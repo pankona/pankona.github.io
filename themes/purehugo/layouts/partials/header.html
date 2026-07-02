@@ -1,21 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .Title }}{{ if .IsPage }} - {{ .Site.Title }}{{ end }}</title>
 
-    <meta name="description" content="{{ .Site.Params.description }}">
+    {{- /* 記事ページでは記事の要約を、それ以外ではサイトの description を使う */ -}}
+    {{- $description := .Site.Params.description -}}
+    {{- if .IsPage -}}
+        {{- $description = or .Description (.Summary | plainify | replaceRE `\s+` " " | strings.TrimSpace) -}}
+    {{- end }}
+    <meta name="description" content="{{ $description }}">
 
     {{hugo.Generator}}
     <meta name="twitter:card" content="summary">
     {{ with .Site.Params.twitter }}<meta name="twitter:site" content="{{ . }}" />{{ end }}
     <meta name="twitter:title" content="{{ .Title }}{{ if .IsPage }} - {{ .Site.Title }}{{ end }}">
-    <meta name="twitter:description" content="{{ .Site.Params.description }}">
+    <meta name="twitter:description" content="{{ $description }}">
 
-    <meta property="og:type" content="article">
+    <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
     <meta property="og:title" content="{{ .Title }}{{ if .IsPage }} - {{ .Site.Title }}{{ end }}">
-    <meta property="og:description" content="{{ .Site.Params.description }}">
+    <meta property="og:description" content="{{ $description }}">
     <meta property="og:image" content="{{ .Site.Params.image }}" />
 
     <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700|Oxygen:400,700' rel='stylesheet' type='text/css'>
