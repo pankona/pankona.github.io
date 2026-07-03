@@ -56,6 +56,18 @@ h3 {
     color: #fff;
     text-decoration: none;
 }
+/* サイトタイトル左の丸いアバターアイコン。
+   poole.css の img { display: block } を打ち消してインラインに戻し、
+   vertical-align でタイトル文字と縦中央を揃える。
+   画像がテキスト行より背が高い分だけバーがわずかに太るのは許容する。 */
+.topbar-avatar {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin: 0 0.55em 0 0;
+    border-radius: 50%;
+    vertical-align: middle;
+}
 .topbar-nav {
     display: flex;
     flex-wrap: wrap;
@@ -188,6 +200,28 @@ h3 {
 }
 .footer li{
     list-style-type: none;
+}
+
+/* 記事本文直後のシェアボタン。
+   外部 JS を読み込まない素の intent リンクを、Twitter ブルーの控えめな pill で表示する。 */
+.post-share {
+    margin: 2.5em 0 0;
+}
+.post-share-twitter {
+    display: inline-block;
+    padding: 0.35em 1.1em;
+    border: 1px solid #1da1f2;
+    border-radius: 999px;
+    color: #1da1f2;
+    font-family: "Oxygen", sans-serif;
+    font-size: 90%;
+    line-height: 1.6;
+}
+.post-share-twitter:hover,
+.post-share-twitter:focus {
+    background: #1da1f2;
+    color: #fff;
+    text-decoration: none;
 }
 
 /* 記事下の前後記事ナビ。
