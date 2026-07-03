@@ -188,7 +188,9 @@ section.post {
 
 .footer {
     text-align: center;
-    padding: 1em 0;
+    /* footer はドキュメント末尾の要素。下側を厚めに取り、
+       スクロールし切ったときにページ下端へ張り付いて見えないようにする */
+    padding: 2em 0 3em;
     color: #555;
     font-size: 80%;
 }
