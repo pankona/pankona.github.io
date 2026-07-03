@@ -21,11 +21,12 @@
                     <div class="post-description">
                         {{ .Content }}
                     </div>
+                    <!-- シェアボタン。外部 JS (widgets.js 等) は読み込まず、素の intent リンクで実装する。
+                         本文と同じ section に置き、本文末尾から自然に続く距離に収める -->
+                    <div class="post-share">
+                        <a class="post-share-twitter" href="https://twitter.com/intent/tweet?url={{ .Permalink | urlquery }}&text={{ printf "%s - %s" .Title .Site.Title | urlquery }}" rel="noopener nofollow" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i> シェア</a>
+                    </div>
                 </section>
-                <!-- シェアボタン。外部 JS (widgets.js 等) は読み込まず、素の intent リンクで実装する -->
-                <div class="post-share">
-                    <a class="post-share-twitter" href="https://twitter.com/intent/tweet?url={{ .Permalink | urlquery }}&text={{ printf "%s - %s" .Title .Site.Title | urlquery }}" rel="noopener nofollow" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i> シェア</a>
-                </div>
                 <!-- 前後記事ナビ。Hugo では Next が新しい記事・Prev が古い記事を指す -->
                 <nav class="post-nav">
                     <div class="post-nav-newer">

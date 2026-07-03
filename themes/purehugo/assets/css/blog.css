@@ -147,7 +147,9 @@ h3 {
 .post-meta {
     color: #6b6b6b;
     font-size: 90%;
-    margin: 5px 0;
+    /* メタ行 (日付・カテゴリ) と本文の間は広めに空けて詰まった印象を避ける
+       (font-size 90% なので 1.75em ≒ 本文の 1.6em 相当) */
+    margin: 5px 0 1.75em;
 }
 
 .post-category {
@@ -203,9 +205,10 @@ h3 {
 }
 
 /* 記事本文直後のシェアボタン。
-   外部 JS を読み込まない素の intent リンクを、Twitter ブルーの控えめな pill で表示する。 */
+   外部 JS を読み込まない素の intent リンクを、Twitter ブルーの控えめな pill で表示する。
+   本文末尾の段落 margin (1rem) とは相殺されるため、実質 1.5em の間隔で本文に続く */
 .post-share {
-    margin: 2.5em 0 0;
+    margin: 1.5em 0 0;
 }
 .post-share-twitter {
     display: inline-block;
