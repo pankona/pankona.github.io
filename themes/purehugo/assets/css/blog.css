@@ -111,8 +111,12 @@ h3 {
     margin: 0 auto;
 }
 
-.post {
+/* 記事本体。バンドルで後に読まれる poole.css の .post { margin-bottom: 4em }
+   がシェアボタンと前後記事ナビの間を空けすぎるため、
+   要素名付きセレクタ (詳細度で勝つ) で margin を打ち消す */
+section.post {
     padding-bottom: 2em;
+    margin-bottom: 0;
 }
 .post-title {
     font-size: 2em;
@@ -234,7 +238,9 @@ h3 {
     display: flex;
     justify-content: space-between;
     gap: 1em 2em;
-    margin: 1em 0 2em;
+    /* 上の間隔は section.post の padding-bottom (2em) に任せて
+       罫線がシェアボタンから離れすぎないようにする */
+    margin: 0 0 2em;
     padding-top: 1.5em;
     border-top: 1px solid #eee;
     font-size: 90%;
