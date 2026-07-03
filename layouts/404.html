@@ -1,14 +1,13 @@
 {{ partial "header.html" . }}
 
-<div id="layout" class="pure-g">
-  {{ partial "sidebar.html" . }}
+{{ partial "topbar.html" . }}
 
-  <div class="content pure-u-1 pure-u-md-3-4">
+<div id="layout">
+  <div class="content">
     <div>
         <h1 id="title"><a href="{{ "" | relURL }}">404 - make: command not found</a></h1>
     </div>
   </div>
-
-  {{ partial "analytics.html" . }}
+</div>
 </body>
 </html>

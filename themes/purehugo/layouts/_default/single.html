@@ -1,22 +1,18 @@
 {{ partial "header.html" . }}
 
-<div id="layout" class="pure-g">
-    {{ partial "sidebar.html" . }}
+{{ partial "topbar.html" . }}
 
-    <div class="content pure-u-1 pure-u-md-3-4">
+<div id="layout">
+    <div class="content">
         <div>
             <!-- A wrapper for all the blog posts -->
             <div class="posts">
-                <h1 class="content-subhead">{{ .Date.Format "2006-01-02 15:04:05" }}</h1>
                 <section class="post">
                     <header class="post-header">
-                        <a href="{{ .Permalink }}" class="post-title">{{ .Title }}</a>
+                        <h1 class="post-title">{{ .Title }}</h1>
                         <p class="post-meta">
-                            {{ with .Params.author }}
-                                By <strong class="post-author">{{ . }}</strong>
-                            {{ end }}
+                            <span class="post-date">{{ .Date.Format "2006-01-02" }}</span>
                             {{ if isset .Params "categories" }}
-                                under 
                                 {{ $baseUrl := .Site.BaseURL }}
                                 {{ range .Params.categories }}<a class="post-category post-category-{{ . }}" href="{{ $baseUrl }}/categories/{{ . | urlize }}">{{ . }}</a>{{ end }}
                             {{ end }}
@@ -25,30 +21,25 @@
                     <div class="post-description">
                         {{ .Content }}
                     </div>
-                    {{ if not .Site.Params.hideShareOptions }}
+                    <!-- シェアボタン。外部 JS (widgets.js 等) は読み込まず、素の intent リンクで実装する。
+                         本文と同じ section に置き、本文末尾から自然に続く距離に収める -->
                     <div class="post-share">
-                        <div class="post-share-links">
-                            <h4 style="">Share</h4>
-                            {{ if isset .Site.Params "facebook" }}
-                            <a href="#" data-type="facebook" data-url="{{ .Permalink }}" data-title="{{ .Title }}" data-description="{{ .Description }}" data-media="" class="prettySocial fa fa-facebook"></a>
-                            {{ end }}
-                            {{ if isset .Site.Params "googleplus" }}
-                            <a href="#" data-type="googleplus" data-url="{{ .Permalink }}" data-description="{{ .Description }}" class="prettySocial fa fa-google-plus"></a>
-                            {{ end }}
-                            {{ if isset .Site.Params "twitter" }}
-                            <a href="https://twitter.com/intent/tweet?url={{ .Permalink }}&text={{ .Title }} - {{ .Site.Title }}{{ .Description }}" rel="nofollow noopener" target="_blank" class="fa fa-twitter"></a>
-                            {{ end }}
-                            
-                        </div>
+                        <a class="post-share-twitter" href="https://twitter.com/intent/tweet?url={{ .Permalink | urlquery }}&text={{ printf "%s - %s" .Title .Site.Title | urlquery }}" rel="noopener nofollow" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i> シェア</a>
                     </div>
-                    {{ end }}
-                    {{ template "_internal/disqus.html" . }}
                 </section>
+                <!-- 前後記事ナビ。Hugo では Next が新しい記事・Prev が古い記事を指す -->
+                <nav class="post-nav">
+                    <div class="post-nav-newer">
+                        {{ with .NextInSection }}<a href="{{ .RelPermalink }}"><span aria-hidden="true">←</span> {{ .Title }}</a>{{ end }}
+                    </div>
+                    <div class="post-nav-older">
+                        {{ with .PrevInSection }}<a href="{{ .RelPermalink }}">{{ .Title }} <span aria-hidden="true">→</span></a>{{ end }}
+                    </div>
+                </nav>
             </div>
             {{ partial "footer.html" . }}
         </div>
     </div>
 </div>
-{{ partial "analytics.html" . }}
 </body>
 </html>

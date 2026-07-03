@@ -5,12 +5,3 @@
         </ul>
     </div>
 </div>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-{{ $js := slice (resources.Get "js/jquery.min.js") (resources.Get "js/jquery.prettysocial.min.js") (resources.Get "js/scripts.js") | resources.Concat "js/all.min.js" | fingerprint }}
-<script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
-<script type="text/javascript" src="{{ .Site.BaseURL }}/js/jquery.oembed.js"></script>
-<script>
-$(function(){
-    $("a.embed").oembed();
-});
-</script>

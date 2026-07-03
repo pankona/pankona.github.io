@@ -4,13 +4,7 @@
     box-sizing: border-box;
 }
 
-/*
-When setting the primary font stack, apply it to the Pure grid units along
-with `html`, `button`, `input`, `select`, and `textarea`. Pure Grids use
-specific font stacks to ensure the greatest OS/browser compatibility.
-*/
-html, button, input, select, textarea,
-.pure-g [class *= "pure-u"] {
+html, button, input, select, textarea {
     /* Set your content font stack here: */
     /* 和文はゴシック系を優先（旧来は serif フォールバックで明朝になっていた） */
     font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
@@ -39,72 +33,73 @@ h3 {
     padding: 0;
 }
 
-.header {
-    text-align: center;
-    top: auto;
-    margin: 3em auto;
-}
-
-.sidebar {
+/* サイドバー廃止に伴う細いトップヘッダー。
+   サイトタイトルはシェルコマンドらしさを残すため小文字のまま表示する。 */
+.topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.3em 1.5em;
+    padding: 0.8em 1.5em;
     background: rgb(61, 79, 93);
     color: #fff;
 }
-
-.brand-title,
-.brand-tagline {
-    margin: 0;
-}
-.brand-title {
-    text-transform: uppercase;
-    font-family: "Oxygen", sans-serif;
-}
-.brand-title a{
-    color:#fff;
-}
-.brand-title a:hover{
-    text-decoration: none;
-}
-.brand-tagline {
-    font-weight: 300;
-    color: rgb(176, 202, 219);
-}
-
-.nav-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-.nav-item {
-    display: inline-block;
-    *display: inline;
-    zoom: 1;
-}
-.nav-item a {
-    background: transparent;
-    border: 2px solid rgb(176, 202, 219);
+.topbar-title {
     color: #fff;
-    margin-top: 1em;
-    /*letter-spacing: 0.05em;
-    text-transform: uppercase;
-     font-size: 85%; */
+    font-family: "Oxygen", sans-serif;
     font-weight: bold;
+    font-size: 1.1em;
+}
+.topbar-title:hover,
+.topbar-title:focus {
+    color: #fff;
+    text-decoration: none;
+}
+/* サイトタイトル左の丸いアバターアイコン。
+   poole.css の img { display: block } を打ち消してインラインに戻し、
+   vertical-align でタイトル文字と縦中央を揃える。
+   画像がテキスト行より背が高い分だけバーがわずかに太るのは許容する。 */
+.topbar-avatar {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin: 0 0.55em 0 0;
+    border-radius: 50%;
+    vertical-align: middle;
+}
+.topbar-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.2em;
+}
+.topbar-nav a {
+    color: rgb(176, 202, 219);
     font-family: "Oxygen", sans-serif;
 }
-.nav-item a:hover,
-.nav-item a:focus {
-    border: 2px solid rgb(61, 146, 201);
+.topbar-nav a:hover,
+.topbar-nav a:focus {
+    color: #fff;
     text-decoration: none;
 }
 
-.content-subhead {
-    text-transform: uppercase;
-    /* #aaa はコントラスト約2.3:1で WCAG AA 不適合だったため濃く */
+/* トップページ記事一覧のタイポグラフィ。
+   タイトルを最初に・大きく出して流し見でも目に留まるようにし、
+   日付は補足情報としてタイトルの下に小さく添える。 */
+.posts article + article {
+    margin-top: 2em;
+    border-top: 1px solid #eee;
+    padding-top: 2em;
+}
+.post-list-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    line-height: 1.4;
+}
+.post-list-date {
     color: #6b6b6b;
-    border-bottom: 1px solid #eee;
-    padding: 0.4em 0;
-    font-size: 80%;
-    font-weight: 500;
-    letter-spacing: 0.1em;
+    font-size: 85%;
+    margin: 0.3em 0 0.5em;
 }
 
 .content {
@@ -112,10 +107,16 @@ h3 {
     /* 1行が長すぎると視線が迷子になるため読みやすい幅にキャップ
        (本文フォント約20px・パディング込みで全角40字弱になる) */
     max-width: 820px;
+    /* サイドバー廃止に伴い本文は中央寄せ */
+    margin: 0 auto;
 }
 
-.post {
+/* 記事本体。バンドルで後に読まれる poole.css の .post { margin-bottom: 4em }
+   がシェアボタンと前後記事ナビの間を空けすぎるため、
+   要素名付きセレクタ (詳細度で勝つ) で margin を打ち消す */
+section.post {
     padding-bottom: 2em;
+    margin-bottom: 0;
 }
 .post-title {
     font-size: 2em;
@@ -150,7 +151,9 @@ h3 {
 .post-meta {
     color: #6b6b6b;
     font-size: 90%;
-    margin: 5px 0;
+    /* メタ行 (日付・カテゴリ) と本文の間は広めに空けて詰まった印象を避ける
+       (font-size 90% なので 1.75em ≒ 本文の 1.6em 相当) */
+    margin: 5px 0 1.75em;
 }
 
 .post-category {
@@ -185,7 +188,9 @@ h3 {
 
 .footer {
     text-align: center;
-    padding: 1em 0;
+    /* footer はドキュメント末尾の要素。下側を厚めに取り、
+       スクロールし切ったときにページ下端へ張り付いて見えないようにする */
+    padding: 2em 0 3em;
     color: #555;
     font-size: 80%;
 }
@@ -205,32 +210,63 @@ h3 {
     list-style-type: none;
 }
 
-.post-share-links{
-    margin:15px 15px 0 0;
-    float:left;
-    padding: 10px;
-    border: 1px solid #ccc;
-    text-align: center;
+/* 記事本文直後のシェアボタン。
+   外部 JS を読み込まない素の intent リンクを、Twitter ブルーの控えめな pill で表示する。
+   本文末尾の段落 margin (1rem) とは相殺されるため、実質 1.5em の間隔で本文に続く */
+.post-share {
+    margin: 1.5em 0 0;
 }
-
-.post-share-links a{
-    color:#aaa;
-    font-size: 28px;
-    line-height: 36px;
-    margin: 0 auto;
-    display: block;
-    transition: all .3s ease-in;
+.post-share-twitter {
+    display: inline-block;
+    padding: 0.35em 1.1em;
+    border: 1px solid #1da1f2;
+    border-radius: 999px;
+    color: #1da1f2;
+    font-family: "Oxygen", sans-serif;
+    font-size: 90%;
+    line-height: 1.6;
 }
-
-.post-share-links a:hover{
-    color: rgb(61, 146, 201);
+.post-share-twitter:hover,
+.post-share-twitter:focus {
+    background: #1da1f2;
+    color: #fff;
     text-decoration: none;
 }
 
-.post-share-links h4{
-    font-family: "Oxygen", sans-serif;
-    margin:0 0 5px;
-    color:#aaa
+/* 記事下の前後記事ナビ。
+   Hugo の Next は新しい記事・Prev は古い記事なので、
+   時系列に沿って左に新しい記事・右に古い記事を置く。 */
+.post-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em 2em;
+    /* 上の間隔は section.post の padding-bottom (2em) に任せて
+       罫線がシェアボタンから離れすぎないようにする */
+    margin: 0 0 2em;
+    padding-top: 1.5em;
+    border-top: 1px solid #eee;
+    font-size: 90%;
+    line-height: 1.5;
+}
+.post-nav-newer,
+.post-nav-older {
+    flex: 0 1 48%;
+}
+.post-nav-older {
+    text-align: right;
+    /* 新しい記事が無い (最新記事の) 場合も右端に寄せる */
+    margin-left: auto;
+}
+@media (max-width: 47.999em) {
+    .post-nav {
+        flex-direction: column;
+    }
+    .post-nav-newer,
+    .post-nav-older {
+        flex-basis: auto;
+        text-align: left;
+        margin-left: 0;
+    }
 }
 
 /* カテゴリ一覧 (/categories/) はタクソノミー terms ページ。
@@ -289,18 +325,6 @@ h3 {
 @media (min-width: 48em) {
     .content {
         padding: 2em 3em 0;
-        margin-left: 25%;
-    }
-
-    .header {
-        margin: 80% 2em 0;
-        text-align: right;
-    }
-
-    .sidebar {
-        position: fixed;
-        top: 0;
-        bottom: 0;
     }
 }
 
