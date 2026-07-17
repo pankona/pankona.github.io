@@ -1,0 +1,11 @@
+{{- /* Markdown の画像記法のレンダリング。title (`![alt](img "キャプション")`)
+     が付いているときだけ figure + figcaption にする (opt-in)。
+     title なしの画像はこれまでどおり素の img のままなので既存記事に影響しない */ -}}
+{{- if .Title -}}
+<figure class="img-caption">
+    <img src="{{ .Destination | safeURL }}" alt="{{ .Text }}">
+    <figcaption>{{ .Title }}</figcaption>
+</figure>
+{{- else -}}
+<img src="{{ .Destination | safeURL }}" alt="{{ .Text }}">
+{{- end -}}
