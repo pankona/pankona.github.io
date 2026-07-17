@@ -4,7 +4,7 @@
 {{- if .Title -}}
 <figure class="img-caption">
     <img src="{{ .Destination | safeURL }}" alt="{{ .Text }}">
-    <figcaption>{{ .Title }}</figcaption>
+    <figcaption>{{ .Title | markdownify }}</figcaption>
 </figure>
 {{- else -}}
 <img src="{{ .Destination | safeURL }}" alt="{{ .Text }}">
