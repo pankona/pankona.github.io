@@ -3,3 +3,4 @@ public
 **/.hugo_build.lock
 tmp
 .direnv/
+node_modules

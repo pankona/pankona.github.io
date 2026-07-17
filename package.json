@@ -1,0 +1,11 @@
+{
+  "name": "pankona.github.io",
+  "private": true,
+  "scripts": {
+    "textlint": "textlint"
+  },
+  "devDependencies": {
+    "textlint": "^15.7.1",
+    "textlint-rule-preset-ja-technical-writing": "^12.0.2"
+  }
+}
