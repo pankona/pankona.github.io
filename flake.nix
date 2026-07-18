@@ -41,6 +41,7 @@
 
               hugo
               go_1_26
+              nodejs
               dart-sass
 
               firebase-tools
