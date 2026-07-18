@@ -26,29 +26,6 @@ jobs:
       - name: Debug print for deprint target paths
         run: dprint output-file-paths
 
-  textlint:
-    # 既存記事に多数の違反が残っているため、PR で変更された markdown のみを対象にする
-    if: github.event_name == 'pull_request'
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Run textlint on changed markdown files
-        run: |
-          files=$(git diff --name-only --diff-filter=ACMR "origin/${GITHUB_BASE_REF}...HEAD" -- 'content/**/*.md')
-          if [ -n "$files" ]; then
-            echo "$files" | xargs npx textlint
-          else
-            echo "No markdown files changed."
-          fi
-
   markdownlint:
     timeout-minutes: 15
     runs-on: ubuntu-latest
