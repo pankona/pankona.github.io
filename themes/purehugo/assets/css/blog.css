@@ -410,3 +410,18 @@ section.post {
         width: 110px;
     }
 }
+
+/* 画像キャプション: ![alt](img "キャプション") の title 記法で付く
+   (render-image.html フックが figure + figcaption にする) */
+.img-caption {
+    margin: 1em 0;
+}
+.img-caption img {
+    display: block;
+}
+.img-caption figcaption {
+    margin-top: 0.4em;
+    font-size: 0.85em;
+    color: #767676;
+    line-height: 1.5;
+}
