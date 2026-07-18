@@ -1,5 +1,25 @@
 {
   "rules": {
-    "preset-ja-technical-writing": true
+    "preset-ja-technical-writing": {
+      "no-exclamation-question-mark": false,
+      "ja-no-weak-phrase": false,
+      "ja-no-successive-word": false,
+      "arabic-kanji-numbers": false,
+      "no-doubled-joshi": false,
+      "no-doubled-conjunction": false,
+      "no-doubled-conjunctive-particle-ga": false,
+      "no-mix-dearu-desumasu": {
+        "preferInHeader": "である",
+        "preferInBody": "である",
+        "preferInList": "である",
+        "severity": "warning"
+      },
+      "sentence-length": {
+        "max": 150
+      },
+      "max-ten": {
+        "max": 5
+      }
+    }
   }
 }
