@@ -116,6 +116,10 @@ h3 {
     color: #6b6b6b;
     margin-right: 0.6em;
 }
+.post-list-categories a:hover,
+.post-list-categories a:focus {
+    color: rgb(61, 146, 201);
+}
 .post-list-categories a::before {
     content: "#";
     opacity: 0.6;
