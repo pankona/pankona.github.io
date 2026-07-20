@@ -1,0 +1,13 @@
+{
+  "annotations": [
+    {
+      "id": "3600535406",
+      "file": "drafts/voice-blog-raw.md",
+      "quote": "## 1しゃべり目 (2026-07-17)",
+      "body": "ねえ、ここの日付 `2026-07-17` って未来の日付になってるわよ。もしかして `2024` 年のタイポかしら？念のため確認してみてね！\n\n```suggestion\n## 1しゃべり目 (2024-07-17)\n```",
+      "author": "gemini-code-assist[bot]",
+      "kind": "pencil",
+      "url": "https://github.com/pankona/pankona.github.io/pull/447#discussion_r3600535406"
+    }
+  ]
+}

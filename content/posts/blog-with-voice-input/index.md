@@ -2,7 +2,7 @@
 title: "音声入力でブログを書けるか"
 date: 2026-07-20T20:10:22+09:00
 draft: false
-categories: ["AI"]
+categories: ["AI","音声入力","ブログ"]
 ---
 
 typeless というアプリを使って、音声入力でブログを書くことを試している。
