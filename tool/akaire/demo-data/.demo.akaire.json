@@ -1,0 +1,24 @@
+{
+  "annotations": [
+    {
+      "id": "demo-1",
+      "file": "demo.md",
+      "quote": "この文は主語が抜けていてなんだか読みにくくなってしまっているし、一文がとても長いので疲れるという指摘も受けそうだし、それでいてまだ続くのだから読者はたまったものではない。",
+      "body": "一文が長すぎる。3 文程度に区切ると読みやすい。たとえば「この文は主語が抜けていて読みにくい。一文も長すぎて疲れる。それでいてまだ続く。」のように。",
+      "author": "claude",
+      "kind": "red",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "demo-2",
+      "file": "demo.md",
+      "quote": "# akaire デモ原稿",
+      "body": "見出しがそっけない。記事の見どころが伝わるタイトルを検討してもよさそう (ふんわりした提案は鉛筆 = 点線で表示される)。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    }
+  ]
+}
