@@ -8,12 +8,7 @@
             <!-- A wrapper for all the blog posts -->
             <div class="posts">
                 {{ range .Paginator.Pages }}
-                <article>
-                    <!-- タイトル → 日付 → 要約 の順で視覚的階層を付ける (index.html と同形式) -->
-                    <div><a class="post-list-title" href="{{ .RelPermalink }}">{{ .Title }}</a></div>
-                    <div class="post-list-date">{{ dateFormat "2006-01-02" .Date }}</div>
-                    <div class="post-description post-summary">{{ .Summary }}</div>
-                </article>
+                {{ partial "post-list-item.html" . }}
                 {{ end }}
             </div>
             {{ partial "pagination.html" . }}
