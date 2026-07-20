@@ -91,15 +91,38 @@ h3 {
     border-top: 1px solid #eee;
     padding-top: 2em;
 }
+/* タイトルは黒で見出しらしく。リンク色は hover 時だけ出す
+   (一覧全体が青文字だらけになるのを避ける) */
 .post-list-title {
     font-size: 1.3em;
     font-weight: bold;
     line-height: 1.4;
+    color: #222;
+}
+.post-list-title:hover,
+.post-list-title:focus {
+    color: rgb(61, 146, 201);
 }
 .post-list-date {
     color: #6b6b6b;
     font-size: 85%;
     margin: 0.3em 0 0.5em;
+}
+/* 日付の横に添えるカテゴリリンク。メタ情報なので日付と同じグレー基調 */
+.post-list-categories {
+    margin-left: 0.8em;
+}
+.post-list-categories a {
+    color: #6b6b6b;
+    margin-right: 0.6em;
+}
+.post-list-categories a:hover,
+.post-list-categories a:focus {
+    color: rgb(61, 146, 201);
+}
+.post-list-categories a::before {
+    content: "#";
+    opacity: 0.6;
 }
 
 .content {
@@ -147,6 +170,9 @@ section.post {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    /* タイトルとの強弱を付けるため本文よりひと回り小さく・薄く */
+    font-size: 0.9em;
+    color: #555;
 }
 .post-meta {
     color: #6b6b6b;

@@ -54,7 +54,9 @@ html {
 }
 @media (min-width: 38em) {
   html {
-    font-size: 20px;
+    /* 日本語ブログの主流 (note 18px / はてな 17px) に合わせる。
+       20px は Medium 級で大きすぎた */
+    font-size: 18px;
   }
 }
 

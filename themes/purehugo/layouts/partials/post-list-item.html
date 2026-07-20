@@ -1,0 +1,21 @@
+<!-- 記事一覧の1件分。index.html / list.html / term.html で共通。
+     タイトル → メタ (日付・カテゴリ) → 要約 の順で視覚的階層を付ける。
+     要約は Summary を plainify した最初の非空行 (= 最初の段落) だけを使う。
+     丸ごと plainify すると linkcard 等の埋め込み要素のテキストが混入するため。
+     長い段落の切り詰めは .post-summary の line-clamp に任せる -->
+{{- $summary := "" -}}
+{{- range split (.Summary | plainify) "\n" -}}
+  {{- if and (not $summary) (strings.TrimSpace .) -}}
+    {{- $summary = strings.TrimSpace . -}}
+  {{- end -}}
+{{- end -}}
+<article>
+  <div><a class="post-list-title" href="{{ .RelPermalink }}">{{ .Title }}</a></div>
+  <div class="post-list-date">
+    {{ dateFormat "2006-01-02" .Date }}
+    {{- with .GetTerms "categories" }}<span class="post-list-categories">
+      {{- range . }}<a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end -}}
+    </span>{{ end }}
+  </div>
+  <div class="post-description post-summary">{{ $summary }}</div>
+</article>
