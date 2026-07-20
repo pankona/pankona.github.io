@@ -19,6 +19,8 @@ import (
 
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/oauth2"
+
+	"github.com/pankona/pankona.github.io/tool/imagemeta"
 )
 
 func main() {
@@ -290,9 +292,9 @@ func (d *imageDownloader) fetch(url string) (name string, err error) {
 	if _, err := io.CopyN(buf, resp.Body, 512); err != nil && !errors.Is(err, io.EOF) {
 		return "", err
 	}
-	ext := extFromContentType(resp.Header.Get("Content-Type"))
+	ext := imagemeta.ExtFromContentType(resp.Header.Get("Content-Type"))
 	if ext == "" {
-		ext = extFromMagic(buf.Bytes())
+		ext = imagemeta.ExtFromMagic(buf.Bytes())
 	}
 	if ext == "" {
 		return "", fmt.Errorf("articlegen: cannot determine image extension for %s (Content-Type=%q)", url, resp.Header.Get("Content-Type"))
@@ -319,37 +321,6 @@ func (d *imageDownloader) fetch(url string) (name string, err error) {
 
 	d.cache[url] = name
 	return name, nil
-}
-
-func extFromContentType(ct string) string {
-	ct = strings.ToLower(strings.TrimSpace(strings.SplitN(ct, ";", 2)[0]))
-	switch ct {
-	case "image/png":
-		return ".png"
-	case "image/jpeg", "image/jpg":
-		return ".jpg"
-	case "image/gif":
-		return ".gif"
-	case "image/webp":
-		return ".webp"
-	case "image/svg+xml":
-		return ".svg"
-	}
-	return ""
-}
-
-func extFromMagic(b []byte) string {
-	switch {
-	case len(b) >= 8 && bytes.Equal(b[:8], []byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a}):
-		return ".png"
-	case len(b) >= 3 && b[0] == 0xff && b[1] == 0xd8 && b[2] == 0xff:
-		return ".jpg"
-	case len(b) >= 6 && (bytes.Equal(b[:6], []byte("GIF87a")) || bytes.Equal(b[:6], []byte("GIF89a"))):
-		return ".gif"
-	case len(b) >= 12 && bytes.Equal(b[:4], []byte("RIFF")) && bytes.Equal(b[8:12], []byte("WEBP")):
-		return ".webp"
-	}
-	return ""
 }
 
 type Article struct {

@@ -1,0 +1,1430 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+<title>akaire — 赤入れエディタ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #fbf8f1;
+    --ink: #2b2a26;
+    --red: #c0392b;
+    --red-soft: rgba(192, 57, 43, 0.08);
+    --pencil: #726d64;
+    --pencil-soft: rgba(114, 109, 100, 0.10);
+    --rule: #e4ddcd;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Noto Serif JP", serif;
+    background: #efe9dc;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    flex: none;
+  }
+  .hrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hspacer { flex: 1; }
+  #pr-link {
+    font-size: 12px;
+    color: var(--pencil);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  #pr-link:hover { color: var(--red); border-color: var(--red); }
+  header h1 {
+    font-size: 16px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+  header h1 .red { color: var(--red); }
+  #file-select {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    max-width: 340px;
+    cursor: pointer;
+  }
+  #new-btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  #cat-btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  #cat-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #cat-modal[hidden] { display: none; }
+  #cat-box {
+    background: #fffdf8;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 16px;
+    width: min(480px, 100%);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-family: "Zen Kurenaido", sans-serif;
+  }
+  #cat-title { font-size: 13px; color: #9a927f; }
+  #cat-pills { display: flex; flex-wrap: wrap; gap: 8px; overflow-y: auto; }
+  .cat-pill {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--pencil);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .cat-pill.on {
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--red-soft, rgba(192,57,43,0.08));
+  }
+  #cat-new {
+    font: inherit;
+    font-size: 14px;
+    padding: 6px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+  }
+  #cat-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  #cat-actions button {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  #cat-ok { border-color: var(--red); color: var(--red); }
+  #status { font-size: 12px; color: var(--pencil); }
+  #status.dirty { color: var(--red); }
+  #save {
+    font: inherit;
+    font-size: 13px;
+    padding: 5px 16px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+  }
+  #save:disabled { opacity: 0.4; cursor: default; }
+
+  #main { flex: 1; display: flex; min-height: 0; justify-content: center; }
+  #editor-wrap {
+    flex: 0 1 720px;
+    min-width: 0;
+    background: var(--paper);
+    box-shadow: 0 0 24px rgba(0,0,0,0.08);
+  }
+  #margin-wrap {
+    flex: 0 0 340px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cm-editor { height: 100%; font-size: 15px; }
+  .cm-editor.cm-focused { outline: none; }
+  .cm-scroller {
+    font-family: "Noto Serif JP", serif !important;
+    line-height: 2.0;
+    padding: 40px 36px 60vh 36px;
+  }
+  .cm-content { max-width: 640px; }
+  .cm-line { padding: 0; }
+  .cm-gutters { display: none; }
+  .cm-image-preview {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    margin: 4px 0 8px;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    box-shadow: 1px 2px 6px rgba(0,0,0,0.08);
+  }
+  .cm-image-caption {
+    font-size: 12px;
+    color: #767676;
+    line-height: 1.5;
+    margin: -4px 0 8px;
+  }
+  .cm-activeLine { background: rgba(0,0,0,0.025); }
+
+  .ann-mark-red {
+    text-decoration: underline wavy var(--red) 1.5px;
+    text-underline-offset: 5px;
+    background: var(--red-soft);
+    cursor: pointer;
+  }
+  .ann-mark-pencil {
+    text-decoration: underline dashed var(--pencil) 1.2px;
+    text-underline-offset: 5px;
+    background: var(--pencil-soft);
+    cursor: pointer;
+  }
+  .ann-mark-red.ann-active { background: rgba(192, 57, 43, 0.22); }
+  .ann-mark-pencil.ann-active { background: rgba(114, 109, 100, 0.28); }
+
+  .card {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    background: #fffdf8;
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--pencil);
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-family: "Zen Kurenaido", sans-serif;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #444;
+    box-shadow: 1px 2px 4px rgba(0,0,0,0.06);
+    transition: top 0.15s ease;
+    cursor: pointer;
+    max-height: 132px;
+    overflow: hidden;
+  }
+  .card.kind-red { border-left-color: var(--red); color: #8e2b20; }
+  /* 展開時も画面に収まる高さで止めて、続きはカード内スクロールで読む
+     (置き場の #margin-wrap が overflow: hidden なので、伸ばし放題だと
+     長い指摘が画面外に切れて読めなくなる) */
+  .card.expanded {
+    max-height: min(65vh, 560px);
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: 2px 4px 14px rgba(0,0,0,0.18);
+  }
+  .card.active { border-color: #b9ad92; box-shadow: 2px 4px 12px rgba(0,0,0,0.15); }
+  .card.orphan { opacity: 0.45; border-left-style: dotted; }
+  .card .meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: #9a927f;
+  }
+  .card .meta .who { font-weight: 600; }
+  .card .meta .done { color: #4a7c3f; }
+  .card .body { white-space: pre-wrap; word-break: break-word; }
+  .card .body code { font-size: 12px; background: rgba(0,0,0,0.05); padding: 0 3px; border-radius: 2px; }
+  .card .dismiss, .card .resolve {
+    font: inherit;
+    font-size: 11px;
+    margin-top: 6px;
+    margin-right: 4px;
+    padding: 1px 8px;
+    border: 1px solid #cfc6b0;
+    border-radius: 999px;
+    background: transparent;
+    color: #9a927f;
+    cursor: pointer;
+    display: none;
+  }
+  .card .resolve { border-color: #9dbb93; color: #4a7c3f; }
+  .card.expanded .dismiss, .card.expanded .resolve { display: inline-block; }
+  #counter { font-size: 12px; color: var(--pencil); }
+  #charcount {
+    font-size: 12px;
+    color: var(--pencil);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+
+  /* ---- モバイル: 欄外カードの代わりにボトムシート ---- */
+  #list-btn {
+    display: none;
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid var(--red);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--red);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #review-btn, #full-btn, #structure-btn, #consult-btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid var(--red);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--red);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #review-btn:disabled, #full-btn:disabled,
+  #structure-btn:disabled, #consult-btn:disabled { opacity: 0.5; cursor: default; }
+  #push-btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #push-btn:disabled { opacity: 0.4; cursor: default; }
+  #branch {
+    font-size: 12px;
+    color: var(--pencil);
+    border: 1px dashed var(--rule);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #branch::before { content: "⎇ "; }
+  #branch.danger { color: var(--red); border-color: var(--red); font-weight: 600; }
+  #review-btn.running, #full-btn.running,
+  #structure-btn.running, #consult-btn.running {
+    animation: review-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes review-pulse {
+    50% { background: var(--red-soft); }
+  }
+  #sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 50;
+    background: #fffdf8;
+    border-top: 3px solid var(--pencil);
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.2);
+    max-height: 45vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+    font-family: "Zen Kurenaido", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #444;
+    transform: translateY(110%);
+    transition: transform 0.2s ease;
+  }
+  #sheet.open { transform: none; }
+  #sheet.kind-red { border-top-color: var(--red); }
+  #sheet.kind-red #sheet-body { color: #8e2b20; }
+  #sheet-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #9a927f;
+    margin-bottom: 6px;
+  }
+  #sheet-head .who { font-weight: 600; }
+  #sheet-head .done { color: #4a7c3f; }
+  #sheet-head .idx { margin-left: auto; }
+  #sheet-head button {
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
+    width: 34px; height: 34px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    flex: none;
+  }
+  #sheet-body { overflow-y: auto; min-height: 0; white-space: pre-wrap; word-break: break-word; overscroll-behavior: contain; }
+  #sheet-body code { font-size: 13px; background: rgba(0,0,0,0.05); padding: 0 3px; border-radius: 2px; }
+  .sheet-item {
+    border-left: 3px solid var(--pencil);
+    background: rgba(0,0,0,0.02);
+    border-radius: 3px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+  }
+  .sheet-item.kind-red { border-left-color: var(--red); color: #8e2b20; }
+  .sheet-item.orphan { opacity: 0.45; }
+  #sheet-dismiss, #sheet-resolve {
+    font: inherit;
+    font-size: 13px;
+    margin-top: 10px;
+    padding: 4px 14px;
+    border: 1px solid #cfc6b0;
+    border-radius: 999px;
+    background: transparent;
+    color: #9a927f;
+    cursor: pointer;
+    flex: none;
+  }
+  #sheet-resolve { border-color: #9dbb93; color: #4a7c3f; }
+  #sheet-actions { display: flex; gap: 8px; flex: none; }
+  #sheet.list #sheet-actions, #sheet.list #sheet-prev, #sheet.list #sheet-next { display: none; }
+
+  @media (max-width: 900px) {
+    /* ボタンが増えてもページ幅を広げない (広がるとシートが画面外にはみ出す) */
+    header { padding: 8px 10px; gap: 4px; }
+    .hrow { gap: 8px; flex-wrap: wrap; }
+    header h1 { display: none; }
+    #counter { display: none; }
+    /* 保存状態は保存ボタンの活性/非活性で分かるので文言は隠す */
+    #status { display: none; }
+    #file-select { flex: 0 1 auto; min-width: 0; max-width: 45vw; font-size: 12px; }
+    #branch { max-width: 26vw; font-size: 11px; }
+    #new-btn { padding: 4px 10px; font-size: 12px; }
+    /* レビュー系ボタンは絵文字のみ表示 (ラベルは JS 側で切替) */
+    #review-btn, #full-btn, #structure-btn, #consult-btn { padding: 4px 9px; font-size: 14px; }
+    #save { flex: none; white-space: nowrap; }
+    #save .kbd { display: none; }
+    #list-btn { display: inline-block; }
+    #main { justify-content: stretch; }
+    #editor-wrap { flex: 1 1 auto; box-shadow: none; }
+    #margin-wrap { display: none; }
+    /* font-size 16px 未満だと iOS がフォーカス時に勝手にズームする */
+    .cm-editor { font-size: 16px; }
+    .cm-scroller { padding: 20px 14px 60vh 14px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="hrow">
+    <h1><span class="red">akaire</span> 赤入れエディタ</h1>
+    <select id="file-select"></select>
+    <button id="new-btn" title="新しい原稿を作る">＋ 新規</button>
+    <button id="cat-btn" title="この原稿のカテゴリ (frontmatter) を編集する">🏷</button>
+    <span id="charcount" title="空白・改行を除いた字数"></span>
+    <div class="hspacer"></div>
+    <span id="status">読込中…</span>
+    <button id="save" disabled>保存<span class="kbd"> (⌃S)</span></button>
+  </div>
+  <div class="hrow">
+    <button id="list-btn">🖍 指摘</button>
+    <button id="review-btn" title="変更箇所を Claude に赤入れしてもらう">🖋 赤入れ</button>
+    <button id="full-btn" title="いま開いている原稿の全文を通しで赤入れしてもらう (仕上げ用)">📖 通し</button>
+    <button id="structure-btn" title="タイトル・章立て・話の流れなど、構成レベルでレビューしてもらう">🧭 構成</button>
+    <button id="consult-btn" title="しっくりこない箇所を選択してから押すと、診断と言い換え案が返ってくる">💬 相談</button>
+    <span id="counter"></span>
+    <div class="hspacer"></div>
+    <span id="branch" title="push 先のブランチ"></span>
+    <a id="pr-link" target="_blank" rel="noopener" hidden></a>
+    <button id="push-btn" title="積んだコミットを remote へ push する" disabled>⤴ push</button>
+  </div>
+</header>
+<div id="main">
+  <div id="editor-wrap"></div>
+  <div id="margin-wrap"></div>
+</div>
+<div id="cat-modal" hidden>
+  <div id="cat-box">
+    <div id="cat-title">カテゴリ (frontmatter の categories)。既存記事から集計した候補をタップで選ぶ</div>
+    <div id="cat-pills"></div>
+    <input id="cat-new" placeholder="新しいカテゴリを入力して Enter" enterkeyhint="done">
+    <div id="cat-actions">
+      <button id="cat-cancel">キャンセル</button>
+      <button id="cat-ok">反映して保存</button>
+    </div>
+  </div>
+</div>
+<div id="sheet">
+  <div id="sheet-head">
+    <span id="sheet-meta"></span>
+    <span class="idx" id="sheet-idx"></span>
+    <button id="sheet-prev" title="前の指摘">‹</button>
+    <button id="sheet-next" title="次の指摘">›</button>
+    <button id="sheet-close" title="閉じる">×</button>
+  </div>
+  <div id="sheet-body"></div>
+  <div id="sheet-actions">
+    <button id="sheet-resolve">✓ 対応した</button>
+    <button id="sheet-dismiss">この指摘は見送る</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "codemirror": "https://esm.sh/*codemirror@6",
+    "@codemirror/state": "https://esm.sh/*@codemirror/state@6",
+    "@codemirror/view": "https://esm.sh/*@codemirror/view@6",
+    "@codemirror/language": "https://esm.sh/*@codemirror/language@6",
+    "@codemirror/commands": "https://esm.sh/*@codemirror/commands@6",
+    "@codemirror/search": "https://esm.sh/*@codemirror/search@6",
+    "@codemirror/autocomplete": "https://esm.sh/*@codemirror/autocomplete@6",
+    "@codemirror/lint": "https://esm.sh/*@codemirror/lint@6",
+    "@codemirror/lang-markdown": "https://esm.sh/*@codemirror/lang-markdown@6",
+    "@codemirror/lang-html": "https://esm.sh/*@codemirror/lang-html@6",
+    "@codemirror/lang-css": "https://esm.sh/*@codemirror/lang-css@6",
+    "@codemirror/lang-javascript": "https://esm.sh/*@codemirror/lang-javascript@6",
+    "@lezer/html": "https://esm.sh/*@lezer/html@1",
+    "@lezer/css": "https://esm.sh/*@lezer/css@1",
+    "@lezer/javascript": "https://esm.sh/*@lezer/javascript@1",
+    "@lezer/common": "https://esm.sh/*@lezer/common@1",
+    "@lezer/highlight": "https://esm.sh/*@lezer/highlight@1",
+    "@lezer/lr": "https://esm.sh/*@lezer/lr@1",
+    "@lezer/markdown": "https://esm.sh/*@lezer/markdown@1",
+    "@marijn/find-cluster-break": "https://esm.sh/@marijn/find-cluster-break@1",
+    "style-mod": "https://esm.sh/style-mod@4",
+    "w3c-keyname": "https://esm.sh/w3c-keyname@2",
+    "crelt": "https://esm.sh/crelt@1"
+  }
+}
+</script>
+<script type="module">
+import { markdown } from "@codemirror/lang-markdown";
+import { EditorView, Decoration, WidgetType, keymap, drawSelection, highlightActiveLine } from "@codemirror/view";
+import { StateField, StateEffect } from "@codemirror/state";
+import { history, defaultKeymap, historyKeymap } from "@codemirror/commands";
+import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
+
+// 見出しを実サイズで大きく表示し、原稿全体のバランスを掴めるようにする
+const markdownStyle = HighlightStyle.define([
+  { tag: tags.heading1, fontSize: "1.7em", fontWeight: "600", lineHeight: "1.5" },
+  { tag: tags.heading2, fontSize: "1.35em", fontWeight: "600", lineHeight: "1.5" },
+  { tag: tags.heading3, fontSize: "1.15em", fontWeight: "600", lineHeight: "1.5" },
+  { tag: tags.processingInstruction, color: "#b9ad92" }, // 「#」「>」などの記号は薄く
+  { tag: tags.quote, color: "#8a8474" },
+]);
+
+const basicSetup = [
+  history(),
+  drawSelection(),
+  highlightActiveLine(),
+  syntaxHighlighting(markdownStyle),
+  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+  keymap.of([...defaultKeymap, ...historyKeymap]),
+];
+
+const $ = (s) => document.querySelector(s);
+const marginWrap = $("#margin-wrap");
+
+let files = [];
+let otherArticles = []; // 他の記事ブランチ (article/*) にある原稿: {branch, file}
+let currentFile = null;
+let annotations = [];   // 現ファイル分 (原稿ごとの .akaire.json から読む)
+let anchored = [];      // 現ファイル分: {ann, from, to} / from==null なら消化済み
+let dirty = false;
+let view = null;
+
+// ---- 注釈の位置決め: 引用テキストを本文から探す ----------------------------
+
+// 空白を無視したファジー検索。見つかれば {from, to}、見つからなければ null。
+function findQuote(doc, quote) {
+  const q = quote.trim();
+  if (!q) return null;
+  let i = doc.indexOf(q);
+  if (i >= 0) return { from: i, to: i + q.length };
+
+  // 空白を取り除いた世界で探し、元のインデックスへ写像する
+  const map = [];
+  let stripped = "";
+  for (let k = 0; k < doc.length; k++) {
+    if (!/\s/.test(doc[k])) { stripped += doc[k]; map.push(k); }
+  }
+  const sq = q.replace(/\s/g, "");
+  i = stripped.indexOf(sq);
+  if (i >= 0 && sq.length > 0) return { from: map[i], to: map[i + sq.length - 1] + 1 };
+
+  // 先頭 24 文字だけでも一致すれば「その周辺」とみなす
+  const head = sq.slice(0, 24);
+  if (head.length >= 12) {
+    i = stripped.indexOf(head);
+    if (i >= 0) return { from: map[i], to: map[i + head.length - 1] + 1 };
+  }
+  return null;
+}
+
+// 注釈の file とエディタで開いているパスの対応判定。
+// 過去データは "drafts/foo.md" のようにリポジトリ相対で書かれていることが
+// あるので、完全一致に加えて末尾一致 (ディレクトリ境界つき) も許す。
+function fileMatches(annFile, cur) {
+  return annFile === cur || annFile.endsWith("/" + cur) || cur.endsWith("/" + annFile);
+}
+
+function reanchor() {
+  const doc = view.state.doc.toString();
+  $("#charcount").textContent = `${doc.replace(/\s/g, "").length.toLocaleString()} 字`;
+  anchored = annotations
+    .filter((a) => fileMatches(a.file, currentFile) && !a.dismissed && !a.resolved)
+    .map((a) => ({ ann: a, ...(findQuote(doc, a.quote) ?? { from: null, to: null }) }));
+  updateDecorations();
+  renderCards();
+  updateCounter();
+  // 単票シートを開いたまま編集していたら、表示を追従させる (スクロールはしない)
+  if (sheetAnnId !== null) {
+    const i = sheetIndex();
+    i >= 0 ? openAnnSheet(i, { scroll: false }) : closeSheet();
+  }
+}
+
+// ---- CodeMirror 装飾 --------------------------------------------------------
+
+const setMarks = StateEffect.define();
+const marksField = StateField.define({
+  create: () => Decoration.none,
+  update(value, tr) {
+    value = value.map(tr.changes);
+    for (const e of tr.effects) if (e.is(setMarks)) value = e.value;
+    return value;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
+function updateDecorations() {
+  const marks = anchored
+    .filter((x) => x.from !== null && x.to > x.from)
+    .sort((a, b) => a.from - b.from)
+    .map((x) =>
+      Decoration.mark({
+        class: `ann-mark-${x.ann.kind} ann-${x.ann.id}`,
+      }).range(x.from, x.to)
+    );
+  view.dispatch({ effects: setMarks.of(Decoration.set(marks, true)) });
+}
+
+// ---- 画像プレビュー: ![...](...) の行の直下に実画像を表示 -------------------
+
+class ImageWidget extends WidgetType {
+  constructor(src, caption) { super(); this.src = src; this.caption = caption; }
+  eq(other) { return other.src === this.src && other.caption === this.caption; }
+  toDOM() {
+    const wrap = document.createElement("div");
+    const img = document.createElement("img");
+    img.src = this.src;
+    img.className = "cm-image-preview";
+    // 読み込み完了で高さが変わるので測り直してもらう (壊れた参照は畳む)
+    img.onload = () => view?.requestMeasure();
+    img.onerror = () => { wrap.style.display = "none"; view?.requestMeasure(); };
+    wrap.appendChild(img);
+    // title 記法 (![alt](img "キャプション")) は公開ページで figcaption になる
+    if (this.caption) {
+      const cap = document.createElement("div");
+      cap.className = "cm-image-caption";
+      cap.textContent = this.caption;
+      wrap.appendChild(cap);
+    }
+    return wrap;
+  }
+  ignoreEvent() { return true; }
+}
+
+// 相対参照 (image-1.png など) は原稿と同じディレクトリのファイルとして解決する
+function imageSrc(ref) {
+  if (/^(https?:)?\/\//.test(ref) || ref.startsWith("/")) return ref;
+  const dir = currentFile.includes("/") ? currentFile.slice(0, currentFile.lastIndexOf("/") + 1) : "";
+  return `/api/asset?file=${encodeURIComponent(dir + ref)}`;
+}
+
+const imageLineRe = /^!\[[^\]]*\]\(([^)\s]+)(?:\s+"([^"]*)")?\)\s*$/;
+
+function buildImagePreviews(doc) {
+  const widgets = [];
+  for (let i = 1; i <= doc.lines; i++) {
+    const line = doc.line(i);
+    const m = imageLineRe.exec(line.text);
+    if (!m) continue;
+    widgets.push(
+      Decoration.widget({ widget: new ImageWidget(imageSrc(m[1]), m[2] ?? ""), block: true, side: 1 })
+        .range(line.to)
+    );
+  }
+  return Decoration.set(widgets);
+}
+
+const imageField = StateField.define({
+  create: (state) => buildImagePreviews(state.doc),
+  update: (value, tr) => (tr.docChanged ? buildImagePreviews(tr.newDoc) : value),
+  provide: (f) => EditorView.decorations.from(f),
+});
+
+// ---- 欄外カード -------------------------------------------------------------
+
+function renderCards() {
+  marginWrap.textContent = "";
+  for (const x of anchored) {
+    const a = x.ann;
+    const card = document.createElement("div");
+    card.className = `card kind-${a.kind}` + (x.from === null ? " orphan" : "");
+    card.dataset.id = a.id;
+    const who = a.author.replace(/\[bot\]$/, " 🤖");
+    const done = x.from === null ? `<span class="done">✓ 対応済み?</span>` : "";
+    card.innerHTML = `
+      <div class="meta"><span class="who">${who}</span>${done}</div>
+      <div class="body"></div>
+      <button class="resolve">✓ 対応した</button><button class="dismiss">この指摘は見送る</button>`;
+    card.querySelector(".body").innerHTML = mdLite(a.body);
+    card.addEventListener("click", (ev) => {
+      if (ev.target.classList.contains("dismiss") || ev.target.classList.contains("resolve")) return;
+      card.classList.toggle("expanded");
+      if (x.from !== null) {
+        view.dispatch({ effects: EditorView.scrollIntoView(x.from, { y: "center" }) });
+      }
+    });
+    card.addEventListener("mouseenter", () => setActive(a.id, true));
+    card.addEventListener("mouseleave", () => setActive(a.id, false));
+    card.querySelector(".dismiss").addEventListener("click", async () => {
+      a.dismissed = true;
+      await saveAnnotations();
+      reanchor();
+    });
+    card.querySelector(".resolve").addEventListener("click", async () => {
+      a.resolved = true;
+      await saveAnnotations();
+      reanchor();
+    });
+    marginWrap.appendChild(card);
+  }
+  layoutCards();
+}
+
+// ごく簡易な markdown 変換 (コード span と suggestion ブロックの体裁だけ)
+function mdLite(s) {
+  const esc = s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return esc
+    .replace(/```suggestion\n([\s\S]*?)```/g, (_, b) => `<code>提案: ${b.trim()}</code>`)
+    .replace(/```[\s\S]*?```/g, (m) => `<code>${m.replace(/```/g, "").trim()}</code>`)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+}
+
+function setActive(id, on) {
+  for (const el of document.querySelectorAll(`.ann-${CSS.escape(id)}`)) {
+    el.classList.toggle("ann-active", on);
+  }
+  document.querySelector(`.card[data-id="${CSS.escape(id)}"]`)?.classList.toggle("active", on);
+}
+
+// カードを対応行の高さに置き、重なりは下に押し出す
+function layoutCards() {
+  if (!view) return;
+  const wrapTop = marginWrap.getBoundingClientRect().top;
+  const items = [];
+  for (const x of anchored) {
+    const card = marginWrap.querySelector(`.card[data-id="${CSS.escape(x.ann.id)}"]`);
+    if (!card) continue;
+    let want = Infinity; // 消化済みは最後に回す
+    if (x.from !== null) {
+      const coords = view.coordsAtPos(Math.min(x.from, view.state.doc.length));
+      if (coords) want = coords.top - wrapTop;
+    }
+    items.push({ card, want });
+  }
+  items.sort((a, b) => a.want - b.want);
+  let y = 8;
+  const bottomStart = [];
+  for (const it of items) {
+    if (it.want === Infinity) { bottomStart.push(it); continue; }
+    y = Math.max(y, it.want);
+    it.card.style.top = `${y}px`;
+    y += it.card.offsetHeight + 10;
+  }
+  for (const it of bottomStart) {
+    it.card.style.top = `${y}px`;
+    y += it.card.offsetHeight + 10;
+  }
+}
+
+function updateCounter() {
+  const open = anchored.filter((x) => x.from !== null).length;
+  const doneN = anchored.filter((x) => x.from === null).length;
+  $("#counter").textContent = `指摘 ${open} 件 / 対応済み? ${doneN} 件`;
+  $("#list-btn").textContent = `🖍 ${open}`;
+}
+
+// ---- ボトムシート (モバイル) ------------------------------------------------
+
+let sheetAnnId = null; // 単票表示中の注釈 ID。一覧表示や非表示のときは null
+
+// ソフトキーボードが出ているときはシートをキーボードの上に乗せる
+// (指摘を見ながらそのまま本文を直せるように)。iOS Safari など
+// キーボードでレイアウトビューポートが縮まないブラウザ向けの追従
+const vv = window.visualViewport;
+if (vv) {
+  const placeSheet = () => {
+    const s = $("#sheet");
+    const gap = window.innerHeight - vv.height - vv.offsetTop;
+    s.style.bottom = `${Math.max(0, gap)}px`;
+    s.style.maxHeight = `${Math.round(vv.height * 0.45)}px`;
+  };
+  vv.addEventListener("resize", placeSheet);
+  vv.addEventListener("scroll", placeSheet);
+  placeSheet();
+}
+
+function openAnnSheet(i, { scroll = true } = {}) {
+  if (!anchored.length) return;
+  i = ((i % anchored.length) + anchored.length) % anchored.length;
+  const x = anchored[i];
+  sheetAnnId = x.ann.id;
+  const who = x.ann.author.replace(/\[bot\]$/, " 🤖");
+  $("#sheet-meta").innerHTML =
+    `<span class="who"></span>` + (x.from === null ? ` <span class="done">✓ 対応済み?</span>` : "");
+  $("#sheet-meta .who").textContent = who;
+  $("#sheet-idx").textContent = `${i + 1} / ${anchored.length}`;
+  $("#sheet-body").innerHTML = mdLite(x.ann.body);
+  $("#sheet").className = `open kind-${x.ann.kind}`;
+  if (scroll && x.from !== null) {
+    view.dispatch({ effects: EditorView.scrollIntoView(x.from, { y: "start", yMargin: 90 }) });
+    flash(x.ann.id);
+  }
+}
+
+function openListSheet() {
+  sheetAnnId = null;
+  $("#sheet-meta").innerHTML = `<span class="who">指摘一覧</span>`;
+  $("#sheet-idx").textContent = "";
+  const body = $("#sheet-body");
+  body.textContent = "";
+  anchored.forEach((x, i) => {
+    const d = document.createElement("div");
+    d.className = `sheet-item kind-${x.ann.kind}` + (x.from === null ? " orphan" : "");
+    d.innerHTML = mdLite(x.ann.body.slice(0, 90) + (x.ann.body.length > 90 ? "…" : ""));
+    d.addEventListener("click", () => openAnnSheet(i));
+    body.appendChild(d);
+  });
+  $("#sheet").className = "open list";
+}
+
+function closeSheet() {
+  sheetAnnId = null;
+  $("#sheet").className = "";
+}
+
+function sheetIndex() {
+  return anchored.findIndex((x) => x.ann.id === sheetAnnId);
+}
+
+function flash(id) {
+  setActive(id, true);
+  setTimeout(() => setActive(id, false), 1200);
+}
+
+$("#list-btn").addEventListener("click", openListSheet);
+$("#sheet-close").addEventListener("click", closeSheet);
+$("#sheet-prev").addEventListener("click", () => openAnnSheet(sheetIndex() - 1));
+$("#sheet-next").addEventListener("click", () => openAnnSheet(sheetIndex() + 1));
+async function markSheetAnn(field) {
+  const i = sheetIndex();
+  if (i < 0) return;
+  anchored[i].ann[field] = true;
+  await saveAnnotations();
+  reanchor();
+  anchored.length ? openAnnSheet(i) : closeSheet();
+}
+$("#sheet-dismiss").addEventListener("click", () => markSheetAnn("dismissed"));
+$("#sheet-resolve").addEventListener("click", () => markSheetAnn("resolved"));
+
+// ---- 通信 -------------------------------------------------------------------
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  if (!res.ok) throw new Error(`${path}: ${res.status}`);
+  return res.headers.get("content-type")?.includes("json") ? res.json() : res.text();
+}
+
+async function saveAnnotations() {
+  await api(`/api/annotations?file=${encodeURIComponent(currentFile)}`, {
+    method: "PUT",
+    body: JSON.stringify({ annotations }, null, 2),
+  });
+}
+
+async function saveDoc() {
+  if (!dirty) return;
+  await api(`/api/doc?file=${encodeURIComponent(currentFile)}`, {
+    method: "PUT",
+    body: view.state.doc.toString(),
+  });
+  setDirty(false);
+}
+
+// ---- 画像・linkcard の挿入 --------------------------------------------------
+
+// text をブロック要素として pos に挿入する。前後に空行が入るよう調整し、
+// 挿入後の末尾位置を返す (連続挿入用)。カーソル行が空行ならその行を使う。
+function insertBlock(pos, text) {
+  const doc = view.state.doc;
+  const line = doc.lineAt(Math.min(pos, doc.length));
+  let from = pos, to = pos;
+  if (line.text.trim() === "") { from = line.from; to = line.to; }
+  const before = doc.sliceString(Math.max(0, from - 2), from);
+  const after = doc.sliceString(to, Math.min(doc.length, to + 2));
+  const prefix = from === 0 || before.endsWith("\n\n") ? "" : before.endsWith("\n") ? "\n" : "\n\n";
+  const suffix = to === doc.length ? "\n" : after.startsWith("\n\n") ? "" : after.startsWith("\n") ? "\n" : "\n\n";
+  const insert = prefix + text + suffix;
+  const end = from + insert.length;
+  view.dispatch({ changes: { from, to, insert }, selection: { anchor: end } });
+  return end;
+}
+
+async function uploadImage(file) {
+  const res = await fetch(`/api/asset?file=${encodeURIComponent(currentFile)}`, {
+    method: "POST",
+    headers: { "Content-Type": file.type || "application/octet-stream" },
+    body: file,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()).name;
+}
+
+// 画像を原稿と同じディレクトリへ保存し、![image](image-N.png) を挿入する
+async function insertImages(files, pos) {
+  for (const f of files) {
+    let name;
+    try {
+      name = await uploadImage(f);
+    } catch (err) {
+      alert(`画像を保存できませんでした: ${err.message}`);
+      return;
+    }
+    pos = insertBlock(pos, `![image](${name})`);
+  }
+}
+
+function setDirty(d) {
+  dirty = d;
+  $("#status").textContent = d ? "未保存の変更あり" : "保存済み";
+  $("#status").classList.toggle("dirty", d);
+  $("#save").disabled = !d;
+}
+
+// ---- 初期化 -----------------------------------------------------------------
+
+let reanchorTimer = null;
+
+async function openFile(name) {
+  currentFile = name;
+  $("#file-select").value = name;
+  // 指摘は原稿ごとのファイル (.<原稿名>.akaire.json) に分かれている
+  const [{ content }, { annotations: anns }] = await Promise.all([
+    api(`/api/doc?file=${encodeURIComponent(name)}`),
+    api(`/api/annotations?file=${encodeURIComponent(name)}`),
+  ]);
+  annotations = anns;
+  view?.destroy();
+  view = new EditorView({
+    parent: $("#editor-wrap"),
+    doc: content,
+    extensions: [
+      basicSetup,
+      markdown(),
+      marksField,
+      imageField,
+      EditorView.lineWrapping,
+      EditorView.updateListener.of((u) => {
+        if (u.docChanged) {
+          setDirty(true);
+          clearTimeout(reanchorTimer);
+          reanchorTimer = setTimeout(reanchor, 300);
+        }
+        if (u.geometryChanged) requestAnimationFrame(layoutCards);
+      }),
+      EditorView.domEventHandlers({
+        scroll: () => requestAnimationFrame(layoutCards),
+        // 画像のペースト → アップロードして相対参照を挿入 (articlegen と同じ形)。
+        // 単独 URL のペースト → linkcard ショートコードに変換。
+        paste: (e, v) => {
+          const items = [...(e.clipboardData?.items ?? [])];
+          const images = items
+            .filter((i) => i.kind === "file" && i.type.startsWith("image/"))
+            .map((i) => i.getAsFile())
+            .filter(Boolean);
+          if (images.length) {
+            e.preventDefault();
+            insertImages(images, v.state.selection.main.head);
+            return true;
+          }
+          const text = (e.clipboardData?.getData("text/plain") ?? "").trim();
+          if (/^https?:\/\/\S+$/.test(text)) {
+            const sel = v.state.selection.main;
+            const line = v.state.doc.lineAt(sel.from);
+            // 貼り付け後にその行が URL だけになる場合のみ変換する
+            const rest = line.text.slice(0, sel.from - line.from) +
+              (sel.to <= line.to ? line.text.slice(sel.to - line.from) : "");
+            if (rest.trim() === "") {
+              e.preventDefault();
+              insertBlock(sel.from, `{{< linkcard "${text}" >}}`);
+              return true;
+            }
+          }
+        },
+        drop: (e, v) => {
+          const images = [...(e.dataTransfer?.files ?? [])].filter((f) => f.type.startsWith("image/"));
+          if (!images.length) return;
+          e.preventDefault();
+          const pos = v.posAtCoords({ x: e.clientX, y: e.clientY }) ?? v.state.selection.main.head;
+          insertImages(images, pos);
+          return true;
+        },
+        // モバイルでは下線タップでボトムシートを開く (フォーカスはそのまま
+        // 通し、キーボードとシートの共存は visualViewport 追従に任せる)
+        click: (e, v) => {
+          if (!matchMedia("(max-width: 900px)").matches) return;
+          const pos = v.posAtCoords({ x: e.clientX, y: e.clientY });
+          if (pos === null) return;
+          const i = anchored.findIndex((x) => x.from !== null && x.from <= pos && pos <= x.to);
+          if (i >= 0) openAnnSheet(i, { scroll: false });
+        },
+      }),
+    ],
+  });
+  setDirty(false);
+  reanchor();
+}
+
+// ---- 赤入れ依頼 (裏で claude -p が走る) ------------------------------------
+
+// スマホは絵文字のみにしてヘッダーが画面幅からはみ出さないようにする
+const REVIEW_BTNS = matchMedia("(max-width: 900px)").matches
+  ? {
+      diff: ["#review-btn", "🖋", "🖋…"],
+      full: ["#full-btn", "📖", "📖…"],
+      structure: ["#structure-btn", "🧭", "🧭…"],
+      consult: ["#consult-btn", "💬", "💬…"],
+    }
+  : {
+      diff: ["#review-btn", "🖋 赤入れ", "🖋 赤入れ中…"],
+      full: ["#full-btn", "📖 通し", "📖 通し中…"],
+      structure: ["#structure-btn", "🧭 構成", "🧭 構成レビュー中…"],
+      consult: ["#consult-btn", "💬 相談", "💬 相談中…"],
+    };
+
+function setReviewUI(running, mode = "diff") {
+  if (!REVIEW_BTNS[mode]) mode = "diff";
+  for (const [m, [sel, idle, busy]] of Object.entries(REVIEW_BTNS)) {
+    const btn = $(sel);
+    btn.disabled = running; // 走るのは同時に 1 本だけ
+    btn.classList.toggle("running", running && m === mode);
+    btn.textContent = running && m === mode ? busy : idle;
+  }
+}
+
+async function pollReview() {
+  let st;
+  try {
+    st = await api("/api/review");
+  } catch {
+    setTimeout(pollReview, 5000);
+    return;
+  }
+  if (st.running) {
+    setTimeout(pollReview, 5000);
+    return;
+  }
+  setReviewUI(false);
+  if (st.error) {
+    alert(`赤入れに失敗しました: ${st.error}\n\n${st.output.slice(-800)}`);
+    return;
+  }
+  // 新しい指摘を読み込み直す。赤入れコミットが増えているので push 数も更新
+  const { annotations: anns } = await api(`/api/annotations?file=${encodeURIComponent(currentFile)}`);
+  annotations = anns;
+  reanchor();
+  refreshPush();
+}
+
+async function startReview(mode, extra = {}) {
+  if (dirty) await saveDoc(); // 最新の原稿を見てもらう
+  try {
+    await api("/api/review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode, file: currentFile, ...extra }),
+    });
+  } catch (err) {
+    alert(`赤入れを開始できませんでした: ${err.message}`);
+    return;
+  }
+  setReviewUI(true, mode);
+  setTimeout(pollReview, 5000);
+}
+$("#review-btn").addEventListener("click", () => startReview("diff"));
+$("#full-btn").addEventListener("click", () => startReview("full"));
+$("#structure-btn").addEventListener("click", () => startReview("structure"));
+
+// 相談: エディタで選択した箇所を quote として渡す。選択はボタンを押しても
+// view.state.selection に残っているのでそこから拾う
+$("#consult-btn").addEventListener("click", () => {
+  if (!view) {
+    alert("原稿が開かれていません");
+    return;
+  }
+  const { from, to } = view.state.selection.main;
+  const quote = view.state.sliceDoc(from, to).trim();
+  if (!quote) {
+    alert("相談したい箇所を本文で選択してから押してください");
+    return;
+  }
+  const note = window.prompt("どうしっくりこない? (メモは省略可)", "");
+  if (note === null) return; // キャンセル
+  startReview("consult", { quote, note });
+});
+
+// ---- カテゴリ編集 (frontmatter の categories) -------------------------------
+
+// frontmatter の中身の範囲 (囲みの --- は含まない)。無ければ null
+function frontmatterRange(doc) {
+  if (!doc.startsWith("---\n")) return null;
+  const end = doc.indexOf("\n---", 3);
+  if (end < 0) return null;
+  return { from: 4, to: end };
+}
+
+// いま開いている原稿のカテゴリ。frontmatter が無ければ null
+function currentCategories() {
+  const doc = view.state.doc.toString();
+  const fm = frontmatterRange(doc);
+  if (!fm) return null;
+  const m = doc.slice(fm.from, fm.to).match(/^categories:\s*\[([^\]]*)\]\s*$/m);
+  if (!m) return [];
+  return m[1].split(",").map((s) => s.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+}
+
+function applyCategories(cats) {
+  const doc = view.state.doc.toString();
+  const fm = frontmatterRange(doc);
+  if (!fm) return;
+  const line = `categories: [${cats.map((c) => JSON.stringify(c)).join(",")}]`;
+  // インライン形式に加え、続く行に - で並べるリスト形式もまとめて置き換える
+  const m = doc.slice(fm.from, fm.to).match(/^categories:.*(?:\n\s*- .*)*/m);
+  if (m) {
+    view.dispatch({ changes: { from: fm.from + m.index, to: fm.from + m.index + m[0].length, insert: line } });
+  } else {
+    view.dispatch({ changes: { from: fm.to, insert: `\n${line}` } });
+  }
+}
+
+let catSel = null; // モーダルで選択中のカテゴリ (Set)
+
+function catAddPill(name, count) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "cat-pill" + (catSel.has(name) ? " on" : "");
+  b.textContent = count ? `${name} (${count})` : name;
+  b.addEventListener("click", () => {
+    catSel.has(name) ? catSel.delete(name) : catSel.add(name);
+    b.classList.toggle("on");
+  });
+  $("#cat-pills").append(b);
+  return b;
+}
+
+$("#cat-btn").addEventListener("click", async () => {
+  const cur = currentCategories();
+  if (cur === null) {
+    alert("この原稿には frontmatter が無いのでカテゴリを設定できません (content/ 配下の記事で使ってください)");
+    return;
+  }
+  let candidates = [];
+  try {
+    candidates = (await api("/api/categories")).categories;
+  } catch {}
+  // いま設定されているが既存記事の集計に出てこないものも候補に混ぜる
+  const known = new Set(candidates.map((c) => c.name));
+  for (const c of [...cur].reverse()) {
+    if (!known.has(c)) candidates.unshift({ name: c, count: 0 });
+  }
+  catSel = new Set(cur);
+  $("#cat-pills").innerHTML = "";
+  for (const { name, count } of candidates) catAddPill(name, count);
+  $("#cat-new").value = "";
+  $("#cat-modal").hidden = false;
+});
+
+$("#cat-new").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const name = $("#cat-new").value.trim();
+  if (!name || catSel.has(name)) return;
+  catSel.add(name);
+  catAddPill(name, 0).scrollIntoView({ block: "nearest" });
+  $("#cat-new").value = "";
+});
+
+$("#cat-ok").addEventListener("click", async () => {
+  // 入力途中のカテゴリも Enter 忘れとして拾う
+  const pending = $("#cat-new").value.trim();
+  if (pending) catSel.add(pending);
+  applyCategories([...catSel]);
+  $("#cat-modal").hidden = true;
+  await saveDoc();
+  // articlegen (issue 経由) は label をカテゴリに写すので、逆方向も同期する
+  try {
+    const { created } = await api("/api/labels", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ names: [...catSel] }),
+    });
+    if (created.length) alert(`GitHub に label を作りました: ${created.join(", ")}`);
+  } catch (err) {
+    alert(`カテゴリは保存しましたが、GitHub label の同期に失敗しました: ${err.message}`);
+  }
+});
+
+$("#cat-cancel").addEventListener("click", () => { $("#cat-modal").hidden = true; });
+$("#cat-modal").addEventListener("click", (e) => {
+  if (e.target.id === "cat-modal") $("#cat-modal").hidden = true;
+});
+
+// ラベルを画面幅に合わせて確定させつつ、
+// ページを開いたとき、すでに赤入れが走っていたら表示を追従させる
+setReviewUI(false);
+api("/api/review").then((st) => {
+  if (st.running) {
+    setReviewUI(true, st.mode);
+    setTimeout(pollReview, 5000);
+  }
+}).catch(() => {});
+
+// ---- push --------------------------------------------------------------------
+
+async function refreshPush() {
+  try {
+    const st = await api("/api/push");
+    const btn = $("#push-btn");
+    const onMain = st.branch === "main" || st.branch === "master";
+    $("#branch").textContent = st.branch;
+    $("#branch").classList.toggle("danger", onMain);
+    const pr = $("#pr-link");
+    if (st.pr) {
+      pr.href = st.pr;
+      pr.textContent = `PR #${st.pr.split("/").pop()}`;
+      pr.hidden = false;
+    } else {
+      pr.hidden = true;
+    }
+    // 未コミットの変更 (保存しただけの直し) は push 時に自動コミットされる
+    const n = st.ahead > 0 ? `${st.ahead}` : "";
+    const plus = st.dirty ? "+" : "";
+    btn.textContent = n || plus ? `⤴ push (${n}${plus})` : "⤴ push";
+    btn.disabled = onMain || !(st.ahead > 0 || st.dirty);
+    btn.title = onMain
+      ? `${st.branch} へは push しません (トピックブランチで作業してください)`
+      : st.ahead > 0 || st.dirty
+        ? `${st.branch} を remote へ push する (+ は未コミットの変更。push 時にコミットされる)`
+        : "push するものはありません";
+  } catch {}
+}
+
+$("#push-btn").addEventListener("click", async () => {
+  if (dirty) await saveDoc(); // エディタ上の未保存分も載せる
+  const st = await api("/api/push");
+  if (!(st.ahead > 0 || st.dirty)) return;
+  const what = [
+    st.ahead > 0 ? `コミット ${st.ahead} 件` : "",
+    st.dirty ? "未コミットの変更 (自動コミットされます)" : "",
+  ].filter(Boolean).join(" と ");
+  if (!confirm(`${st.branch} の ${what} を remote へ push します。よろしいですか？`)) return;
+  const btn = $("#push-btn");
+  btn.disabled = true;
+  btn.textContent = "⤴ push 中…";
+  try {
+    const res = await api("/api/push", { method: "POST" });
+    if (res.prCreated) alert(`draft PR を作りました:\n${res.pr}`);
+  } catch (err) {
+    alert(`push に失敗しました: ${err.message}`);
+  }
+  await refreshPush();
+});
+
+refreshPush();
+setInterval(refreshPush, 60000);
+
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+    saveDoc();
+  }
+});
+$("#save").addEventListener("click", saveDoc);
+
+function rebuildFileSelect() {
+  const sel = $("#file-select");
+  sel.textContent = "";
+  for (const f of files) {
+    const o = document.createElement("option");
+    o.value = f;
+    o.textContent = f;
+    sel.appendChild(o);
+  }
+  // 他の記事ブランチ (article/*) の原稿。選ぶとブランチごと切り替わる
+  if (otherArticles.length) {
+    const g = document.createElement("optgroup");
+    g.label = "他のブランチの記事";
+    for (const { branch, file } of otherArticles) {
+      const o = document.createElement("option");
+      o.value = `${branch} ${file}`;
+      o.dataset.branch = branch;
+      o.dataset.file = file;
+      o.textContent = `⎇ ${branch.replace(/^article\//, "")} — ${file}`;
+      g.appendChild(o);
+    }
+    sel.appendChild(g);
+  }
+  sel.value = currentFile ?? "";
+}
+
+async function reloadFiles() {
+  const res = await api("/api/files");
+  files = res.files;
+  otherArticles = res.others ?? [];
+  rebuildFileSelect();
+}
+
+$("#file-select").addEventListener("change", async (e) => {
+  const opt = e.target.selectedOptions[0];
+  // 別ブランチの記事: 未保存分を保存 → サーバー側で WIP コミット → git switch
+  if (opt?.dataset.branch) {
+    const { branch, file } = opt.dataset;
+    try {
+      if (dirty) await saveDoc();
+      await api("/api/switch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branch }),
+      });
+    } catch (err) {
+      alert(`ブランチを切り替えられませんでした: ${err.message}`);
+      e.target.value = currentFile;
+      return;
+    }
+    await reloadFiles();
+    await openFile(file);
+    rebuildFileSelect();
+    refreshPush();
+    return;
+  }
+  const name = e.target.value;
+  if (name === currentFile) return;
+  if (dirty && !confirm("未保存の変更があります。破棄して移動しますか？")) {
+    e.target.value = currentFile;
+    return;
+  }
+  await openFile(name);
+});
+
+// Hugo の記事らしい場所に作るときだけ frontmatter の雛形を入れる
+function newFileTemplate(name) {
+  if (!name.includes("content/")) return "";
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const off = -now.getTimezoneOffset();
+  const tz = `${off >= 0 ? "+" : "-"}${pad(Math.abs(off) / 60 | 0)}:${pad(Math.abs(off) % 60)}`;
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
+    `T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}${tz}`;
+  // ブランチにいる間が下書き期間 (マージ = 公開) なので draft フラグは使わない
+  return `---\ntitle: ""\ndate: ${date}\ndraft: false\ncategories: []\n---\n\n`;
+}
+
+$("#new-btn").addEventListener("click", async () => {
+  let name = prompt(
+    "新しい原稿のパス (データディレクトリからの相対)。\n" +
+    "content/posts/<slug> は page bundle (<slug>/index.md) になり、画像を同じ場所に置ける。\n" +
+    "origin/main から article/<slug> ブランチが自動で作られる:",
+    "content/posts/");
+  if (!name) return;
+  name = name.trim().replace(/^\/+|\/+$/g, "");
+  if (!name.endsWith(".md")) {
+    // content/ 配下の記事は画像を貼れるよう page bundle 形式で作る
+    name += name.startsWith("content/") ? "/index.md" : ".md";
+  }
+  if (files.includes(name)) { await openFile(name); return; }
+  try {
+    if (dirty) await saveDoc(); // 未保存分はサーバー側の WIP コミットに載せて退避
+    await api("/api/new", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ file: name, content: newFileTemplate(name) }),
+    });
+  } catch (err) {
+    alert(`作成できませんでした: ${err.message}`);
+    return;
+  }
+  await reloadFiles();
+  await openFile(name);
+  rebuildFileSelect();
+  refreshPush();
+});
+
+const res = await api("/api/files");
+files = res.files;
+otherArticles = res.others ?? [];
+rebuildFileSelect();
+if (files.length) await openFile(files[0]);
+
+// デバッグ・自動操作用フック
+window.akaire = {
+  get view() { return view; },
+  get anchored() { return anchored; },
+  replace(from, to) {
+    const doc = view.state.doc.toString();
+    const i = doc.indexOf(from);
+    if (i < 0) return false;
+    view.dispatch({ changes: { from: i, to: i + from.length, insert: to } });
+    return true;
+  },
+};
+</script>
+</body>
+</html>
