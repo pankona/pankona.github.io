@@ -71,7 +71,8 @@ go run ./akaire -data /path/to/blog-data -addr 127.0.0.1:8433
 
 運用上の注意 (過去のセッションで踏んだもの):
 
-- `go build ./akaire` はしない (akaire ディレクトリ名と衝突する)。検証は `go vet ./akaire`
+- `go build ./akaire` はしない (akaire ディレクトリ名と衝突する)。検証は
+  `go build -o /dev/null ./akaire` (+ `go vet ./akaire`)
 - サーバーの再起動前に必ず `curl -s http://127.0.0.1:8433/api/review` で
   `"running":false` を確認する。実行中に殺すと走っている赤入れ (claude -p) が孤児になる
 - 既存プロセスは `ss -tlnp | grep 8433` で PID を特定して kill する
