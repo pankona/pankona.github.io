@@ -550,6 +550,126 @@
       "body": "同じ段落 (行53) の頭で「ひとつの記事を書き上げる時間が」とひらがな表記にしていて、こちらの「一つ目」は漢字表記。表記揺れなので、「ひとつ目」に揃えるか、両方「一つ」に揃えるかを。この記事の他の箇所 (行9「一文が長い」等) は熟語成分の「一」を漢字にしている程度で、「ひとつ」単独ではひらがな寄りに見えるので、「ひとつ目」に揃えるほうが一貫しそう。",
       "author": "claude",
       "resolved": true
+    },
+    {
+      "id": "zentai2-1",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "という点が、執筆し始めのハードルを下げるという効能がありそう",
+      "body": "主述のねじれ。「〜という点が」を受ける述語が「効能がありそう」で、「点が効能がある」という形になってしまっている。「〜という点に、執筆し始めのハードルを下げる効能がありそう」か、「〜という点が、執筆し始めのハードルを下げてくれそう」のどちらかの形に。",
+      "author": "claude",
+      "kind": "red",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-2",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "音声入力された文章のひどいことと言ったらなかなかなので",
+      "body": "「ひどいことと言ったら」の受けが「なかなか」で宙に浮いている (慣用は「ひどいことと言ったらない」か「ひどさと言ったらなかなかのもの」)。「音声入力された文章のひどさと言ったらなかなかのものなので」あたりが収まりがよい。",
+      "author": "claude",
+      "kind": "red",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-3",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "倍くらいの時間が掛かっているような雰囲気ある",
+      "body": "行45 の「書き終わるのに2〜3時間くらいかかっている」はひらがな表記なので「かかっている」に揃える。※shime-7 が ✓ になっているが、本文は漢字のまま残っている。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-4",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "しゃべったものを文字起こししたものを読んでみると",
+      "body": "「〜ものを」が二連続で詰まる。「しゃべったものを文字起こしして読んでみると」か「文字起こしされた文章を読んでみると」。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-5",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "喋っているうちに主述がねじれてしまったりする",
+      "body": "ここだけ「喋」が漢字。この記事では「しゃべった」「しゃべり方」「しゃべり始める」とひらがな表記なので「しゃべっているうちに」に統一。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-6",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "## ところで、AI がまるまる書いた記事って読む気にならないんだよな",
+      "body": "見出しは「まるまる書いた」、この節の本文は「AI が丸々書いた文章」「丸々残した上で」と表記がゆれている。どちらかに統一 (「まるっと」は別の言い回しなのでそのままで OK)。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-7",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "症状がしょっちゅう現れることが分かる",
+      "body": "行17 では「理由はぶっちゃけよくわからない」とひらがな。「現れることがわかる」に揃えるのがおすすめ。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-8",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "この記事は音声入力を使って書かれている… 少なくとも下書きは。",
+      "body": "三点リーダーが「…」1個+半角スペース。行35 の「……！」は2個連結なので、「書かれている……少なくとも下書きは。」に揃えると一貫する。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-9",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "音声入力によるブログ記事作成をトライしたのは初めてではない",
+      "body": "規範的には「〜にトライする」(「作成にトライした」)。「を」で受けるなら「作成を試みた」。口語の揺れとして通じはするので好みで。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-10",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "キーボードで入力するより音声入力のほうが入力スピードが速い",
+      "body": "「入力」が一文に3回。「キーボードを叩くより音声入力のほうがスピードが速い」などにすると軽くなる。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-11",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "こんな記事をレビューするのに Fable 先生を使ってしまってすまない",
+      "body": "行35末からここまで「レビューしてもらう」「レビューしてもらった」「レビューするのに」と3連続。3つ目を「こんな記事を見てもらうのに」などにすると畳みかけが解ける。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
+    },
+    {
+      "id": "zentai2-12",
+      "file": "drafts/voice-blog-dearu.md",
+      "quote": "## 思ったよりそんな簡単ではない",
+      "body": "規範的には「そんなに簡単ではない」。「そんな簡単では」は口語の脱落としてアリな気もするので、狙いなら見送りで。",
+      "author": "claude",
+      "kind": "pencil",
+      "resolved": false,
+      "dismissed": false
     }
   ]
 }
