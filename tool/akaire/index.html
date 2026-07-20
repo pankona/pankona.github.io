@@ -1106,6 +1106,10 @@ $("#structure-btn").addEventListener("click", () => startReview("structure"));
 // 相談: エディタで選択した箇所を quote として渡す。選択はボタンを押しても
 // view.state.selection に残っているのでそこから拾う
 $("#consult-btn").addEventListener("click", () => {
+  if (!view) {
+    alert("原稿が開かれていません");
+    return;
+  }
   const { from, to } = view.state.selection.main;
   const quote = view.state.sliceDoc(from, to).trim();
   if (!quote) {

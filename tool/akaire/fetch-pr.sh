@@ -31,7 +31,9 @@ python3 -c 'import json,sys; print("\n".join(sorted({c["path"] for c in json.loa
       continue
     fi
     mkdir -p "$(dirname "$dest")"
-    gh api "repos/$repo/contents/$path?ref=$branch" --jq .content | base64 -d > "$dest"
+    # base64 コマンドはデコードフラグが Linux (-d) と macOS (-D) で違うので python で
+    gh api "repos/$repo/contents/$path?ref=$branch" --jq .content |
+      python3 -c 'import sys, base64; sys.stdout.buffer.write(base64.b64decode(sys.stdin.read()))' > "$dest"
     echo "fetched: $path"
   done
 

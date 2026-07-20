@@ -618,7 +618,9 @@ func main() {
 			}
 			log.Printf("committed before push: %s", msg)
 		}
-		out, err := git("push", "origin", "HEAD")
+		// -u で upstream を設定しないと、akaire が作ったブランチの初回 push 後に
+		// @{upstream} が解決できず ahead が数えられなくなる
+		out, err := git("push", "-u", "origin", "HEAD")
 		if err != nil {
 			http.Error(w, fmt.Sprintf("%v\n%s", err, out), http.StatusInternalServerError)
 			return
