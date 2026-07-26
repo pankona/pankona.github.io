@@ -59,15 +59,17 @@ AI (Claude) に期待する役割は、雑誌や書籍の編集でいうとこ�
 「akaire を起動して」と言われたら以下の手順で立ち上げること。
 
 ```console
-# 1. 原稿作業用の worktree を用意する (無ければ)。main 直上では作業しない
-git worktree add /path/to/blog-data -b <作業ブランチ> origin/main
-
-# 2. tool/ ディレクトリから起動する
+# tool/ ディレクトリから起動する。-data はこのリポジトリの通常のチェックアウトでよい
 cd tool
-go run ./akaire -data /path/to/blog-data -addr 127.0.0.1:8433
+go run ./akaire -data /path/to/pankona.github.com -addr 127.0.0.1:8433
 # スマホ (tailscale 越し) からも使う場合のみ -addr 0.0.0.0:8433。
 # 原稿を書き換えられる API があるので、tailnet の外には絶対に開けない
 ```
+
+**`-data` 用に worktree を用意する必要はない**。ブランチ運用 (1 ブランチ = 1 記事) は
+akaire 自身がやる: 「＋ 新規」で `git switch -c article/<slug> origin/main` が走り、
+既存の記事ブランチへは `POST /api/switch` で切り替わる (未保存分は WIP コミットに退避)。
+起動時に main を指していてよく、むしろそれが標準。
 
 運用上の注意 (過去のセッションで踏んだもの):
 
@@ -76,6 +78,9 @@ go run ./akaire -data /path/to/blog-data -addr 127.0.0.1:8433
 - サーバーの再起動前に必ず `curl -s http://127.0.0.1:8433/api/review` で
   `"running":false` を確認する。実行中に殺すと走っている赤入れ (claude -p) が孤児になる
 - 既存プロセスは `ss -tlnp | grep 8433` で PID を特定して kill する
-- WSL2 + worktree では hugo server のファイル監視が効かない。表示確認は静的ビルドで行う
+- WSL2 では hugo server のファイル監視が効かない。表示確認は静的ビルドで行う
 - ブランチ運用は 1 ブランチ = 1 記事 (article/<slug>)。新規記事・ブランチ切替・push・
   draft PR 作成は akaire の UI が自動でやるので、手で git 操作を挟む必要は基本ない
+- 記事ブランチを別の worktree で掴まない。他の worktree がチェックアウト中のブランチは
+  ブランチ一覧から除外される (main.go の for-each-ref + `%(worktreepath)` 判定) ため、
+  akaire の「他のブランチの記事」から開けなくなる
