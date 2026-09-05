@@ -36,8 +36,11 @@ func main() {
 	addr := flag.String("addr", "127.0.0.1:8433", "listen address")
 	dataDir := flag.String("data", "demo-data", "directory containing .md files")
 	flag.Parse()
-	if _, err := os.Stat(filepath.Join(*dataDir, viewpointsPath)); err != nil {
-		log.Printf("warning: 赤入れの観点ファイルが見つからない (%s)。赤入れ依頼は失敗する: %v", viewpointsPath, err)
+	viewpointsFile, err := resolveViewpoints(*dataDir)
+	if err != nil {
+		log.Printf("warning: %v。赤入れ依頼は失敗する", err)
+	} else {
+		log.Printf("viewpoints: %s", viewpointsFile)
 	}
 
 	mux := http.NewServeMux()
@@ -377,9 +380,14 @@ func main() {
 		}
 		doc := filepath.ToSlash(name)
 		ann := filepath.ToSlash(annPath(name))
-		viewpoints, err := os.ReadFile(filepath.Join(*dataDir, viewpointsPath))
+		viewpointsFile, err := resolveViewpoints(*dataDir)
 		if err != nil {
-			http.Error(w, "赤入れの観点ファイルが読めない ("+viewpointsPath+"): "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		viewpoints, err := os.ReadFile(viewpointsFile)
+		if err != nil {
+			http.Error(w, "赤入れの観点ファイルが読めない: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		var prompt string
@@ -708,6 +716,34 @@ func main() {
 // 以下の各プロンプトは「どの範囲を読むか」と「.akaire.json への出力の仕方」だけを定め、
 // 観点そのものは書かない。観点を変えたいときは viewpoints.md を編集する。
 const viewpointsPath = ".claude/skills/akaire-review/references/viewpoints.md"
+
+// resolveViewpoints は観点ファイルの実パスを返す。-data 配下を優先し、無ければ
+// カレントディレクトリから親をたどって探す (tool/ から demo-data で起動したときに
+// リポジトリ本体の viewpoints.md にフォールバックするため)。
+func resolveViewpoints(dataDir string) (string, error) {
+	if p := filepath.Join(dataDir, viewpointsPath); fileExists(p) {
+		return p, nil
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("赤入れの観点ファイル (%s) が見つからない: %v", viewpointsPath, err)
+	}
+	for {
+		if p := filepath.Join(dir, viewpointsPath); fileExists(p) {
+			return p, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("赤入れの観点ファイル (%s) が -data 配下にもカレントの親ディレクトリにも見つからない", viewpointsPath)
+		}
+		dir = parent
+	}
+}
+
+func fileExists(p string) bool {
+	st, err := os.Stat(p)
+	return err == nil && !st.IsDir()
+}
 
 // viewpointsSuffixFmt は各プロンプトの末尾に観点ファイルの内容を埋め込む
 // (%[1]s: 観点ファイルのパス, %[2]s: その内容)。Claude に読みに行かせるのではなく
