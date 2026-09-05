@@ -34,15 +34,12 @@ AI (Claude) に期待する役割は、雑誌や書籍の編集でいうとこ�
 
 - akaire (tool/akaire) は `claude -p` の起動時に viewpoints.md をプロンプトへ埋め込む
 - GitHub Actions 上の @claude と手元での記事 PR レビューは `.claude/skills/akaire-review/SKILL.md` に従う
-  (観点は viewpoints.md、出力はインラインコメント + 講評。講評でインラインの内容を再掲しない)
 
 ## 記事のプルリクエストをレビューするとき
 
 記事の PR のレビューを依頼された場合も、上記の「赤入れ・鉛筆入れ」のつもりで対応すること。
 具体的な編集提案 (「ここをこう直したらどうか」) をしてもよいが、基本は修正指示・指摘の形で伝え、書き直した文章を丸ごと提示することはしない。
-手順は akaire-review スキル (`.claude/skills/akaire-review/SKILL.md`) に従う。
-行に紐づく指摘は `mcp__github_inline_comment__create_inline_comment` を `confirmed: true` で呼んでインラインコメントとして投稿する
-(`gh api` は許可していない)。
+手順 (インラインコメントの投稿方法や講評の書き方) は akaire-review スキル (`.claude/skills/akaire-review/SKILL.md`) に従う。
 
 ## akaire (赤入れエディタ) の起動と運用
 
