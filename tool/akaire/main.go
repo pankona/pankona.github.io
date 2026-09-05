@@ -724,7 +724,8 @@ const viewpointsSuffixFmt = `
 const annotationFormat = `   {"id": 一意な文字列, "file": リポジトリ相対パス, "quote": 原稿に完全一致する引用,
     "body": 指摘本文 (修正案を添える), "author": "claude", "kind": "red" か "pencil"}
    quote は原稿の文字列をそのまま抜くこと (アンカーに使われるため)。
-   kind は viewpoints の各章に書かれた区分に従う (文の成立・写り込みは "red"、構成・言い回しは "pencil")。
+   kind は各モードの手順で指定された値を使う。指定が無ければ viewpoints の各章に書かれた区分に従う
+   (文の成立・写り込みは "red"、構成・言い回しは "pencil")。
    既存の指摘 (dismissed = 見送り, resolved = 対応済み を含む) は変更しない。`
 
 // reviewPromptFmt は赤入れ依頼ボタンで起動する claude -p への指示

@@ -80,7 +80,7 @@ akaire (tool/akaire、`claude -p` で起動) と GitHub Actions 上の @claude (
 - リンク先・引用元の記述が本文と一致しているか
 - front matter (date、categories、draft) と本文の日付・内容の整合
 
-## 6. 構成レビュー専用の観点
+## 6. 構成レビュー専用の観点 (kind "pencil")
 
 一文一文の校閲はしない。記事全体のストーリーの通りを見る。
 
