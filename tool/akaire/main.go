@@ -743,6 +743,7 @@ const reviewPromptFmt = `あなたはブログ原稿の赤入れ (校閲) 係で
 2. リポジトリに .textlintrc* があれば、対象の原稿に textlint をかける:
    npx textlint --format json %[1]s
    出力の扱いは viewpoints の 8 章に従い、本物の問題だけを手順 4 の形式の指摘に翻訳する。
+   quote は textlint が指した行・列に対応する原稿の文字列をそのまま切り出す。
 
 3. 変更箇所を読み、指摘を %[2]s の annotations 配列に追記する
    (ファイルが無ければ {"annotations": []} から作る)。
@@ -772,6 +773,7 @@ const fullReviewPromptFmt = `あなたはブログ原稿の赤入れ (校閲) �
 2. リポジトリに .textlintrc* があれば、対象の原稿に textlint をかける:
    npx textlint --format json %[1]s
    出力の扱いは viewpoints の 8 章に従い、本物の問題だけを手順 4 の形式の指摘に翻訳する。
+   quote は textlint が指した行・列に対応する原稿の文字列をそのまま切り出す。
 
 3. 全文を通して読み、指摘を %[2]s の annotations 配列に追記する
    (ファイルが無ければ {"annotations": []} から作る)。
