@@ -34,4 +34,6 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # 記事本文の代筆はしない (CLAUDE.md の赤入れポリシーを尊重する)
-          claude_args: '--model claude-fable-5-1 --effort medium --allowed-tools "Bash(gh pr:*),Bash(gh issue:*),Bash(go build:*),Bash(go vet:*),Bash(go test:*)"'
+          # インラインコメントは action 同梱の MCP ツールで投稿する (gh api を開放すると
+          # トークンで何でもできてしまうので、こちらのほうが権限が狭い)
+          claude_args: '--model claude-fable-5-1 --effort medium --allowed-tools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr:*),Bash(gh issue:*),Bash(go build:*),Bash(go vet:*),Bash(go test:*)"'
