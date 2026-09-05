@@ -34,4 +34,4 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # 記事本文の代筆はしない (CLAUDE.md の赤入れポリシーを尊重する)
-          claude_args: '--allowed-tools "Bash(gh pr:*),Bash(gh issue:*),Bash(go build:*),Bash(go vet:*),Bash(go test:*)"'
+          claude_args: '--model claude-fable-5-1 --effort medium --allowed-tools "Bash(gh pr:*),Bash(gh issue:*),Bash(go build:*),Bash(go vet:*),Bash(go test:*)"'
