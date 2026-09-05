@@ -14,7 +14,9 @@ description: ブログ記事の PR を「赤入れ・鉛筆入れ」としてレ
 2. **PR の対象を把握する**。`gh pr view` / `gh pr diff` で変更された記事 (content/ 配下の .md) と画像を特定する。
    記事ファイルは全文を読む (差分だけでは文の成立や重複は判定できない)。画像は Read で開いて中身を見る
 3. **viewpoints に従って指摘を洗い出す**。1〜5 章 (文の成立、文体、構成、通し、事実確認) を全部通す。
-   textlint (8 章) は .textlintrc* があれば実行する
+   textlint (8 章) は手元で動かすときだけ実行する。GitHub Actions 上の @claude では使えない
+   (.github/workflows/claude.yml が npm ci を走らせておらず、Bash(npx textlint:*) も許可していない) ので、
+   Actions 上では試さずにスキップする
 4. **行に紐づく指摘はインラインコメントで投稿する**。
    `mcp__github_inline_comment__create_inline_comment` を **`confirmed: true`** で呼ぶ
    (confirmed なしだとバッファされて投稿されない)。

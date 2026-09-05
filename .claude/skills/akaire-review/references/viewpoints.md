@@ -121,6 +121,7 @@ akaire (tool/akaire、`claude -p` で起動) と GitHub Actions 上の @claude (
 - kind は "red"
 - 意図的な文体・レトリック (口語の差し込みへの ですます warning 等) と判断したものは指摘にしない
 - textlint が実行できない場合はスキップして構わない (エラーにしない)
+- GitHub Actions 上の @claude では textlint は使えない (workflow が許可していない)。試さずにスキップする。実行するのは akaire と手元の対話セッションだけ
 
 ## 9. 指摘の書き方
 
