@@ -20,7 +20,10 @@ description: ブログ記事の PR を「赤入れ・鉛筆入れ」としてレ
    (confirmed なしだとバッファされて投稿されない)。
    - 1 指摘 1 コメント。本文の冒頭に 🔴 (red: 文の成立・写り込み) か ✏️ (pencil: 構成・言い回し) を置いて優先度を示す
    - 該当行が diff に含まれていない場合 (既存記事の未変更行など) だけ、講評側に行番号つきで書く
-   - `gh api` は許可されていない。インライン投稿には必ず上記ツールを使う
+   - Actions 上では `gh api` は許可されていない。インライン投稿には必ず上記ツールを使う
+   - **手元の対話セッション** (上記 MCP ツールが無い環境) では、代わりに
+     `gh api repos/{owner}/{repo}/pulls/{number}/comments --method POST -f body=... -f commit_id=<head SHA> -f path=... -F line=... -f side=RIGHT`
+     で投稿する。講評 (手順 5) は `gh pr comment` で新規コメントとして投稿する
 5. **講評をまとめる**。進捗コメント (`mcp__github_comment__update_claude_comment`) を最終的に次の内容に更新する:
    - 読者としての感想・良かった点 (viewpoints 9 章)
    - 指摘の件数と red / pencil の内訳 (1 行)
