@@ -1,6 +1,6 @@
 ---
 title: >-
-  有線LANを敷設した
+  家の自室に有線LANを敷設した
 date: 2026-09-04T17:50:18+09:00
 draft: false
 categories: ["その他"]
