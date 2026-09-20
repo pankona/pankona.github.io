@@ -7,7 +7,7 @@ categories: [AI]
 
 jevってツールが話題なので試してみた。
 
-## jevの試し方
+## jev の試し方
 
 {{< linkcard "https://typesafe.ai/" >}}
 
