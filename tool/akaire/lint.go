@@ -22,16 +22,34 @@ import (
 
 const jevEndpoint = "https://api.typesafe.ai/v1/systemone"
 
-// 波線を引く閾値。2026-09-20 の既存記事 3 本での実験値 (絶対値は文によって
-// ぶれるので、使いながら調整する前提)
-const (
-	lintTypoThreshold    = 0.5
-	lintTwistedThreshold = 0.5
-	lintHardThreshold    = 1.0 // score は 0 (一読で分かる) 〜 2 (読み返しても取りづらい)
-)
+// jev に聞く判定 (すべて Noul = yes の確率) と、波線を引く閾値。
+// 閾値は 2026-09-20 の既存記事 3 本での実験値 (絶対値は文によってぶれるので、
+// 使いながら調整する前提)。viewpoints.md の 1 章 (文の成立) と 3 章 (読みやすさ) から、
+// jev が実際に拾えたものだけを採用している。「係り受けの曖昧さ」「指示語の指し先」は
+// 試したが信号が弱かったので入れていない。
+var lintChecks = []struct {
+	Key       string
+	Label     string // フロントの表示名
+	Threshold float64
+}{
+	{"typo", "誤字?", 0.5},
+	{"twisted", "主述のねじれ?", 0.5},
+	{"long", "一文が長い", 0.6},
+	{"repeat", "同じ語句の繰り返し", 0.55},
+}
 
-// jev に聞く質問。ですます調の検出は jev が苦手 (である文にも高い値を返す) なので
-// 正規表現でやる
+// 正規表現で拾うもの (jev が苦手、または規則で十分なもの)。
+// ですます調は jev がである文にも高い値を返すので使わない。
+var lintRegexChecks = []struct {
+	Key   string
+	Label string
+	Re    *regexp.Regexp
+	Min   int // マッチ数がこれ以上で波線
+}{
+	{"desumasu", "ですます調", regexp.MustCompile(`(です|ます|ました|でした|ましょう|ません|ですね|ますね)[。！？!?」)]*\s*$`), 1},
+	{"double_ga", "逆接が二重 (〜が、〜が、)", regexp.MustCompile(`(が|けど|けれど|けれども|ものの)、`), 2},
+}
+
 var lintQuestions = map[string]any{
 	"typo": map[string]any{
 		"type":         "noul",
@@ -49,18 +67,23 @@ var lintQuestions = map[string]any{
 			"false": "口語的・くだけた表現でも、主語と述語は素直に対応しており文として成立している",
 		},
 	},
-	"hard": map[string]any{
-		"type":         "score",
-		"instructions": "`prev` と `next` を文脈として、`sentence` を一度読んだだけで意味が取れるか。読者目線での読みにくさを評価せよ。",
-		"criteria": []string{
-			"一読で意味が取れる",
-			"少し引っかかるが読み返せば分かる",
-			"一文が長い・修飾関係が曖昧などで、読み返しても意味が取りづらい",
+	"long": map[string]any{
+		"type":         "noul",
+		"instructions": "`sentence` は、読点や「〜し」「〜が」「〜ので」で節をつなぎ続けて一文に話題や動作が三つ以上詰め込まれており、読者が途中で息切れするか? (読者は `prev`・`next` も見ている)",
+		"criteria": map[string]any{
+			"true":  "一文に節が多く、区切って二文以上にした方が読みやすい",
+			"false": "節の数は適度で、一文のまま読める",
+		},
+	},
+	"repeat": map[string]any{
+		"type":         "noul",
+		"instructions": "`sentence` の中で、同じ語句 (名詞・動詞・言い回し) が二度以上出てきて冗長に感じるか? 強調のための意図的な繰り返しや口癖は除く。",
+		"criteria": map[string]any{
+			"true":  "同じ語句が一文の中で繰り返されていて、片方を削るか言い換えた方がよい",
+			"false": "繰り返しはない、または意図的な強調",
 		},
 	},
 }
-
-var reDesumasu = regexp.MustCompile(`(です|ます|ました|でした|ましょう|ません|ですね|ますね)[。！？!?」)]*\s*$`)
 
 type lintSentence struct {
 	From, To int // UTF-16 オフセット (エディタの位置と一致させる)
@@ -69,29 +92,31 @@ type lintSentence struct {
 	Next     string
 }
 
-type lintScores struct {
-	Typo    float64 `json:"typo"`
-	Twisted float64 `json:"twisted"`
-	Hard    float64 `json:"hard"`
-}
+// lintScores は判定キー → yes の確率
+type lintScores map[string]float64
 
 type lintHit struct {
-	From     int        `json:"from"`
-	To       int        `json:"to"`
-	Text     string     `json:"text"`
-	Scores   lintScores `json:"scores"`
-	Flags    []string   `json:"flags"` // typo / twisted / hard / desumasu。空なら波線なし
-	Desumasu bool       `json:"desumasu"`
+	From   int        `json:"from"`
+	To     int        `json:"to"`
+	Text   string     `json:"text"`
+	Scores lintScores `json:"scores"`
+	Flags  []string   `json:"flags"` // 閾値を超えた判定キー。空なら波線なし
+}
+
+type lintLabel struct {
+	Key   string `json:"key"`
+	Label string `json:"label"`
 }
 
 type lintResult struct {
-	Enabled   bool      `json:"enabled"`
-	Model     string    `json:"model,omitempty"`
-	Tokens    int       `json:"tokens"`
-	Sentences int       `json:"sentences"`
-	Cached    int       `json:"cached"`
-	Hits      []lintHit `json:"hits"`
-	Errors    int       `json:"errors"`
+	Enabled   bool        `json:"enabled"`
+	Model     string      `json:"model,omitempty"`
+	Tokens    int         `json:"tokens"`
+	Sentences int         `json:"sentences"`
+	Cached    int         `json:"cached"`
+	Hits      []lintHit   `json:"hits"`
+	Errors    int         `json:"errors"`
+	Labels    []lintLabel `json:"labels"` // 表示順つきの判定名 (フロントはこれで描く)
 }
 
 // linter は jev への問い合わせと、文ごとの結果キャッシュを持つ。
@@ -205,42 +230,47 @@ func (l *linter) ask(ctx context.Context, s lintSentence) (lintScores, string, i
 	})
 	req, err := http.NewRequestWithContext(ctx, "POST", jevEndpoint, bytes.NewReader(body))
 	if err != nil {
-		return lintScores{}, "", 0, err
+		return nil, "", 0, err
 	}
 	req.Header.Set("Authorization", "Bearer "+l.apiKey)
 	req.Header.Set("Content-Type", "application/json")
 	res, err := l.client.Do(req)
 	if err != nil {
-		return lintScores{}, "", 0, err
+		return nil, "", 0, err
 	}
 	defer res.Body.Close()
 	rb, _ := io.ReadAll(res.Body)
 	if res.StatusCode != http.StatusOK {
-		return lintScores{}, "", 0, fmt.Errorf("jev: %d: %s", res.StatusCode, rb)
+		return nil, "", 0, fmt.Errorf("jev: %d: %s", res.StatusCode, rb)
 	}
 	var r struct {
 		Model   string `json:"model"`
 		Answers map[string]struct {
-			Noul  float64 `json:"noul"`
-			Score float64 `json:"score"`
+			Noul float64 `json:"noul"`
 		} `json:"answers"`
 		Usage struct {
 			InputTokens int `json:"input_tokens"`
 		} `json:"usage"`
 	}
 	if err := json.Unmarshal(rb, &r); err != nil {
-		return lintScores{}, "", 0, err
+		return nil, "", 0, err
 	}
-	return lintScores{
-		Typo:    r.Answers["typo"].Noul,
-		Twisted: r.Answers["twisted"].Noul,
-		Hard:    r.Answers["hard"].Score,
-	}, r.Model, r.Usage.InputTokens, nil
+	sc := lintScores{}
+	for _, c := range lintChecks {
+		sc[c.Key] = r.Answers[c.Key].Noul
+	}
+	return sc, r.Model, r.Usage.InputTokens, nil
 }
 
 // lint は原稿全文を文に割って jev に並列で問い合わせ、文ごとの判定を返す。
 func (l *linter) lint(ctx context.Context, doc string) lintResult {
 	res := lintResult{Enabled: l.enabled(), Hits: []lintHit{}}
+	for _, c := range lintChecks {
+		res.Labels = append(res.Labels, lintLabel{c.Key, c.Label})
+	}
+	for _, c := range lintRegexChecks {
+		res.Labels = append(res.Labels, lintLabel{c.Key, c.Label})
+	}
 	if !l.enabled() {
 		return res
 	}
@@ -289,18 +319,15 @@ func (l *linter) lint(ctx context.Context, doc string) lintResult {
 			continue
 		}
 		h := lintHit{From: s.From, To: s.To, Text: s.Text, Scores: scores[i], Flags: []string{}}
-		if h.Scores.Typo >= lintTypoThreshold {
-			h.Flags = append(h.Flags, "typo")
+		for _, c := range lintChecks {
+			if h.Scores[c.Key] >= c.Threshold {
+				h.Flags = append(h.Flags, c.Key)
+			}
 		}
-		if h.Scores.Twisted >= lintTwistedThreshold {
-			h.Flags = append(h.Flags, "twisted")
-		}
-		if h.Scores.Hard >= lintHardThreshold {
-			h.Flags = append(h.Flags, "hard")
-		}
-		if reDesumasu.MatchString(s.Text) {
-			h.Desumasu = true
-			h.Flags = append(h.Flags, "desumasu")
+		for _, c := range lintRegexChecks {
+			if len(c.Re.FindAllStringIndex(s.Text, -1)) >= c.Min {
+				h.Flags = append(h.Flags, c.Key)
+			}
 		}
 		res.Hits = append(res.Hits, h)
 	}

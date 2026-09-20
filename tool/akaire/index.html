@@ -676,7 +676,7 @@ const lintField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-const lintLabel = { typo: "誤字?", twisted: "ねじれ?", hard: "読みにくい?", desumasu: "ですます調" };
+let lintLabels = [];  // サーバーが返す判定名 [{key, label}] (表示順)
 let lintHits = [];   // 直近の結果のうち flags 付きのもの: {from, to, text, scores, flags}
 let lintCursor = -1;
 
@@ -694,6 +694,7 @@ async function runLint() {
     return;
   }
   if (!res.enabled) { el.hidden = true; return; }
+  lintLabels = res.labels;
   // 応答待ちの間に打った分は、文のテキストで探し直して位置を合わせる
   const doc = view.state.doc.toString();
   const moved = doc !== sent;
@@ -709,9 +710,12 @@ async function runLint() {
     }
     lintHits.push({ ...h, from, to });
   }
+  const label = (k) => lintLabels.find((l) => l.key === k)?.label ?? k;
   const marks = lintHits.map((h) => {
-    const tip = h.flags.map((f) => lintLabel[f]).join(" / ") +
-      `\n誤字 ${h.scores.typo.toFixed(2)} · ねじれ ${h.scores.twisted.toFixed(2)} · 読みにくさ ${h.scores.hard.toFixed(2)}`;
+    // 1 行目: 引っかかった項目。2 行目: jev の各判定値 (規則で拾ったものには値が無い)
+    const tip = h.flags.map(label).join(" / ") + "\n" +
+      lintLabels.filter((l) => l.key in h.scores)
+        .map((l) => `${l.label} ${h.scores[l.key].toFixed(2)}`).join(" · ");
     return Decoration.mark({
       class: "lint-mark" + (h.flags.includes("typo") ? " lint-typo" : ""),
       attributes: { title: tip },
