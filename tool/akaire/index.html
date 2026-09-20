@@ -1186,10 +1186,16 @@ async function pollReview() {
     return;
   }
   // 新しい指摘を読み込み直す。赤入れコミットが増えているので push 数も更新
+  const before = annotations.length;
   const { annotations: anns } = await api(`/api/annotations?file=${encodeURIComponent(currentFile)}`);
   annotations = anns;
   reanchor();
   refreshPush();
+  // jev→赤入れ で全部「外れ」だったときは指摘が増えず何も起きないように見えるので、
+  // claude の報告 (何を外れとしたか) をそのまま見せる
+  if (st.mode === "lint" && anns.length === before) {
+    alert(`jev の波線は指摘になりませんでした。\n\n${st.output.trim().slice(-1500)}`);
+  }
 }
 
 async function startReview(mode, extra = {}) {
