@@ -205,7 +205,10 @@ func splitSentences(doc string) []lintSentence {
 			segStart = end
 		}
 		for _, m := range reLintEndMark.FindAllStringIndex(body, -1) {
-			flush(m[1])
+			// 「」や () の中の ？！ は文末ではない (「〜は？」って質問して、など)
+			if bracketDepth(body[segStart:m[0]]) == 0 {
+				flush(m[1])
+			}
 		}
 		flush(len(body))
 	}
@@ -218,6 +221,22 @@ func splitSentences(doc string) []lintSentence {
 		}
 	}
 	return out
+}
+
+// bracketDepth は s の中で開いたまま閉じていない括弧の数を返す
+func bracketDepth(s string) int {
+	d := 0
+	for _, r := range s {
+		switch r {
+		case '「', '『', '（', '(', '"', '“':
+			d++
+		case '」', '』', '）', ')', '”':
+			if d > 0 {
+				d--
+			}
+		}
+	}
+	return d
 }
 
 func utf16Len(s string) int {
