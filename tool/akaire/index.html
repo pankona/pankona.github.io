@@ -1510,6 +1510,10 @@ $("#new-btn").addEventListener("click", async () => {
   if (!name.endsWith(".md")) {
     // content/ 配下の記事は画像を貼れるよう page bundle 形式で作る
     name += name.startsWith("content/") ? "/index.md" : ".md";
+  } else if (name.startsWith("content/") && !name.endsWith("/index.md")) {
+    // 「content/posts/foo.md」と打たれても bundle にする。単体の .md だと貼った画像が
+    // 記事の URL (/blog/yyyy/mm/dd/foo/) から見えず、プレビューで画像が出ない
+    name = name.replace(/\.md$/, "/index.md");
   }
   if (files.includes(name)) { await openFile(name); return; }
   try {
