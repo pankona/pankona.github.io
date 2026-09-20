@@ -4,6 +4,7 @@ date: 2026-09-20T23:16:00+09:00
 draft: false
 categories: [AI]
 ---
+
 jevってツールが話題なので試してみた。
 
 ## jevの試し方
