@@ -319,7 +319,7 @@
     cursor: pointer;
     white-space: nowrap;
   }
-  #review-btn, #full-btn, #structure-btn, #consult-btn {
+  #review-btn, #full-btn, #structure-btn, #consult-btn, #lint-btn {
     font: inherit;
     font-size: 13px;
     padding: 4px 12px;
@@ -331,7 +331,8 @@
     white-space: nowrap;
   }
   #review-btn:disabled, #full-btn:disabled,
-  #structure-btn:disabled, #consult-btn:disabled { opacity: 0.5; cursor: default; }
+  #structure-btn:disabled, #consult-btn:disabled, #lint-btn:disabled { opacity: 0.5; cursor: default; }
+  #lint-btn[hidden] { display: none; }
   #push-btn {
     font: inherit;
     font-size: 13px;
@@ -358,7 +359,7 @@
   #branch::before { content: "⎇ "; }
   #branch.danger { color: var(--red); border-color: var(--red); font-weight: 600; }
   #review-btn.running, #full-btn.running,
-  #structure-btn.running, #consult-btn.running {
+  #structure-btn.running, #consult-btn.running, #lint-btn.running {
     animation: review-pulse 1.4s ease-in-out infinite;
   }
   @keyframes review-pulse {
@@ -449,7 +450,7 @@
     #branch { max-width: 26vw; font-size: 11px; }
     #new-btn { padding: 4px 10px; font-size: 12px; }
     /* レビュー系ボタンは絵文字のみ表示 (ラベルは JS 側で切替) */
-    #review-btn, #full-btn, #structure-btn, #consult-btn { padding: 4px 9px; font-size: 14px; }
+    #review-btn, #full-btn, #structure-btn, #consult-btn, #lint-btn { padding: 4px 9px; font-size: 14px; }
     #save { flex: none; white-space: nowrap; }
     #save .kbd { display: none; }
     #list-btn { display: inline-block; }
@@ -481,6 +482,7 @@
     <button id="full-btn" title="いま開いている原稿の全文を通しで赤入れしてもらう (仕上げ用)">📖 通し</button>
     <button id="structure-btn" title="タイトル・章立て・話の流れなど、構成レベルでレビューしてもらう">🧭 構成</button>
     <button id="consult-btn" title="しっくりこない箇所を選択してから押すと、診断と言い換え案が返ってくる">💬 相談</button>
+    <button id="lint-btn" title="jev が波線を引いた文だけを Claude に吟味してもらい、本物なら指摘にする" hidden>🪄 jev→赤入れ</button>
     <span id="counter"></span>
     <div class="hspacer"></div>
     <span id="branch" title="push 先のブランチ"></span>
@@ -679,6 +681,7 @@ const lintField = StateField.define({
 let lintLabels = [];  // サーバーが返す判定名 [{key, label}] (表示順)
 let lintHits = [];   // 直近の結果のうち flags 付きのもの: {from, to, text, scores, flags}
 let lintCursor = -1;
+let lintPromise = Promise.resolve(); // 走っている runLint (jev→赤入れ が待つ)
 
 async function runLint() {
   const el = $("#lint-status");
@@ -693,7 +696,7 @@ async function runLint() {
     el.title = String(e);
     return;
   }
-  if (!res.enabled) { el.hidden = true; return; }
+  if (!res.enabled) { el.hidden = true; $("#lint-btn").hidden = true; return; }
   lintLabels = res.labels;
   // 応答待ちの間に打った分は、文のテキストで探し直して位置を合わせる
   const doc = view.state.doc.toString();
@@ -725,6 +728,7 @@ async function runLint() {
   lintCursor = -1;
   const n = lintHits.length;
   el.textContent = n ? `jev ${n} 件` : "jev ✓";
+  $("#lint-btn").hidden = n === 0;
   el.title = `jev による軽い校正: ${res.sentences} 文 (キャッシュ ${res.cached}、${res.tokens.toLocaleString()} tok` +
     (res.errors ? `、エラー ${res.errors}` : "") + ")。クリックで次の波線へ";
 }
@@ -995,7 +999,7 @@ async function saveDoc() {
     body: view.state.doc.toString(),
   });
   setDirty(false);
-  runLint();
+  lintPromise = runLint();
 }
 
 // ---- 画像・linkcard の挿入 --------------------------------------------------
@@ -1132,7 +1136,7 @@ async function openFile(name) {
   setDirty(false);
   reanchor();
   lintHits = [];
-  runLint(); // 開いた時点でも一度かける (同じ文はサーバー側キャッシュで安い)
+  lintPromise = runLint(); // 開いた時点でも一度かける (同じ文はサーバー側キャッシュで安い)
 }
 
 // ---- 赤入れ依頼 (裏で claude -p が走る) ------------------------------------
@@ -1144,12 +1148,14 @@ const REVIEW_BTNS = matchMedia("(max-width: 900px)").matches
       full: ["#full-btn", "📖", "📖…"],
       structure: ["#structure-btn", "🧭", "🧭…"],
       consult: ["#consult-btn", "💬", "💬…"],
+      lint: ["#lint-btn", "🪄", "🪄…"],
     }
   : {
       diff: ["#review-btn", "🖋 赤入れ", "🖋 赤入れ中…"],
       full: ["#full-btn", "📖 通し", "📖 通し中…"],
       structure: ["#structure-btn", "🧭 構成", "🧭 構成レビュー中…"],
       consult: ["#consult-btn", "💬 相談", "💬 相談中…"],
+      lint: ["#lint-btn", "🪄 jev→赤入れ", "🪄 吟味中…"],
     };
 
 function setReviewUI(running, mode = "diff") {
@@ -1204,6 +1210,13 @@ async function startReview(mode, extra = {}) {
 $("#review-btn").addEventListener("click", () => startReview("diff"));
 $("#full-btn").addEventListener("click", () => startReview("full"));
 $("#structure-btn").addEventListener("click", () => startReview("structure"));
+// jev の波線を claude に吟味してもらう。波線は保存時の文なので、保存してから最新の結果を送る
+$("#lint-btn").addEventListener("click", async () => {
+  if (dirty) await saveDoc();
+  await lintPromise;
+  if (!lintHits.length) { alert("jev の波線がありません"); return; }
+  startReview("lint", { hits: lintHits.map(({ text, flags, scores }) => ({ text, flags, scores })) });
+});
 
 // 相談: エディタで選択した箇所を quote として渡す。選択はボタンを押しても
 // view.state.selection に残っているのでそこから拾う

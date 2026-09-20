@@ -359,3 +359,29 @@ func (l *linter) lint(ctx context.Context, doc string) lintResult {
 	}
 	return res
 }
+
+// lintDescribe はプロンプト用に、波線の理由を「誤字? 0.65 / ですます調」の形で返す
+func lintDescribe(flags []string, scores map[string]float64) string {
+	label := func(key string) string {
+		for _, c := range lintChecks {
+			if c.Key == key {
+				return c.Label
+			}
+		}
+		for _, c := range lintRegexChecks {
+			if c.Key == key {
+				return c.Label
+			}
+		}
+		return key
+	}
+	var parts []string
+	for _, f := range flags {
+		if v, ok := scores[f]; ok {
+			parts = append(parts, fmt.Sprintf("%s %.2f", label(f), v))
+		} else {
+			parts = append(parts, label(f))
+		}
+	}
+	return strings.Join(parts, " / ")
+}
