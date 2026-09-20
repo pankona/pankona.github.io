@@ -292,6 +292,9 @@ func main() {
 			http.Error(w, "unsupported image type", http.StatusBadRequest)
 			return
 		}
+		// スクショ由来の巨大な PNG をそのまま原稿に積まないよう、保存前に縮める
+		var shrunk string
+		b, ext, shrunk = shrinkImage(b, ext)
 		dir := filepath.Join(*dataDir, filepath.Dir(name))
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			httpError(w, err)
@@ -310,8 +313,12 @@ func main() {
 			httpError(w, err)
 			return
 		}
-		log.Printf("asset saved: %s (%d bytes)", filepath.Join(filepath.Dir(name), asset), len(b))
-		writeJSON(w, map[string]any{"name": asset})
+		if shrunk != "" {
+			log.Printf("asset saved: %s (%d bytes, 縮小: %s)", filepath.Join(filepath.Dir(name), asset), len(b), shrunk)
+		} else {
+			log.Printf("asset saved: %s (%d bytes)", filepath.Join(filepath.Dir(name), asset), len(b))
+		}
+		writeJSON(w, map[string]any{"name": asset, "shrunk": shrunk})
 	})
 
 	// エディタから相対参照される画像 (image-1.png など) のプレビュー用
