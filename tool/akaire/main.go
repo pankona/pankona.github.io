@@ -45,6 +45,22 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	lint := newLinter()
+	if lint.enabled() {
+		log.Printf("jev lint: 有効 (保存時に原稿本文が api.typesafe.ai へ送られる)")
+	} else {
+		log.Printf("jev lint: 無効 (TYPESAFE_API_KEY 未設定)")
+	}
+	// 保存直後にフロントから呼ばれる軽い校正。body は原稿全文
+	mux.HandleFunc("POST /api/lint", func(w http.ResponseWriter, r *http.Request) {
+		b, err := io.ReadAll(r.Body)
+		if err != nil {
+			httpError(w, err)
+			return
+		}
+		writeJSON(w, lint.lint(r.Context(), string(b)))
+	})
+
 	git := func(args ...string) (string, error) {
 		cmd := exec.Command("git", args...)
 		cmd.Dir = *dataDir
