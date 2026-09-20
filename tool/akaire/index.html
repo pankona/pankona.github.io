@@ -219,6 +219,22 @@
     background: var(--pencil-soft);
     cursor: pointer;
   }
+  /* jev の「引っかかりそう」の波線。指摘ではないので背景は付けない */
+  .lint-mark {
+    text-decoration: underline wavy #c9a227 1.2px;
+    text-underline-offset: 6px;
+  }
+  .lint-mark.lint-typo { text-decoration-color: #d0743c; }
+  #lint-status {
+    font-size: 12px;
+    color: var(--pencil);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 2px 10px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  #lint-status[hidden] { display: none; }
   .ann-mark-red.ann-active { background: rgba(192, 57, 43, 0.22); }
   .ann-mark-pencil.ann-active { background: rgba(114, 109, 100, 0.28); }
 
@@ -303,7 +319,7 @@
     cursor: pointer;
     white-space: nowrap;
   }
-  #review-btn, #full-btn, #structure-btn, #consult-btn {
+  #review-btn, #full-btn, #structure-btn, #consult-btn, #lint-btn {
     font: inherit;
     font-size: 13px;
     padding: 4px 12px;
@@ -315,7 +331,8 @@
     white-space: nowrap;
   }
   #review-btn:disabled, #full-btn:disabled,
-  #structure-btn:disabled, #consult-btn:disabled { opacity: 0.5; cursor: default; }
+  #structure-btn:disabled, #consult-btn:disabled, #lint-btn:disabled { opacity: 0.5; cursor: default; }
+  #lint-btn[hidden] { display: none; }
   #push-btn {
     font: inherit;
     font-size: 13px;
@@ -342,7 +359,7 @@
   #branch::before { content: "⎇ "; }
   #branch.danger { color: var(--red); border-color: var(--red); font-weight: 600; }
   #review-btn.running, #full-btn.running,
-  #structure-btn.running, #consult-btn.running {
+  #structure-btn.running, #consult-btn.running, #lint-btn.running {
     animation: review-pulse 1.4s ease-in-out infinite;
   }
   @keyframes review-pulse {
@@ -433,7 +450,7 @@
     #branch { max-width: 26vw; font-size: 11px; }
     #new-btn { padding: 4px 10px; font-size: 12px; }
     /* レビュー系ボタンは絵文字のみ表示 (ラベルは JS 側で切替) */
-    #review-btn, #full-btn, #structure-btn, #consult-btn { padding: 4px 9px; font-size: 14px; }
+    #review-btn, #full-btn, #structure-btn, #consult-btn, #lint-btn { padding: 4px 9px; font-size: 14px; }
     #save { flex: none; white-space: nowrap; }
     #save .kbd { display: none; }
     #list-btn { display: inline-block; }
@@ -454,6 +471,7 @@
     <button id="new-btn" title="新しい原稿を作る">＋ 新規</button>
     <button id="cat-btn" title="この原稿のカテゴリ (frontmatter) を編集する">🏷</button>
     <span id="charcount" title="空白・改行を除いた字数"></span>
+    <span id="lint-status" hidden title="jev による軽い校正 (保存のたびに実行)。クリックで次の波線へ"></span>
     <div class="hspacer"></div>
     <span id="status">読込中…</span>
     <button id="save" disabled>保存<span class="kbd"> (⌃S)</span></button>
@@ -464,6 +482,7 @@
     <button id="full-btn" title="いま開いている原稿の全文を通しで赤入れしてもらう (仕上げ用)">📖 通し</button>
     <button id="structure-btn" title="タイトル・章立て・話の流れなど、構成レベルでレビューしてもらう">🧭 構成</button>
     <button id="consult-btn" title="しっくりこない箇所を選択してから押すと、診断と言い換え案が返ってくる">💬 相談</button>
+    <button id="lint-btn" title="jev が波線を引いた文だけを Claude に吟味してもらい、本物なら指摘にする" hidden>🪄 jev→赤入れ</button>
     <span id="counter"></span>
     <div class="hspacer"></div>
     <span id="branch" title="push 先のブランチ"></span>
@@ -641,6 +660,89 @@ function updateDecorations() {
       }).range(x.from, x.to)
     );
   view.dispatch({ effects: setMarks.of(Decoration.set(marks, true)) });
+}
+
+// ---- jev lint: 保存のたびに「引っかかりそうな文」へ波線 --------------------
+//
+// claude -p の赤入れ (指摘カード) とは別レイヤー。jev は確率しか返さないので
+// 指摘文は無く、ホバーで各判定の値だけ見せる。書き直せば次の保存で消える。
+
+const setLint = StateEffect.define();
+const lintField = StateField.define({
+  create: () => Decoration.none,
+  update(value, tr) {
+    value = value.map(tr.changes);
+    for (const e of tr.effects) if (e.is(setLint)) value = e.value;
+    return value;
+  },
+  provide: (f) => EditorView.decorations.from(f),
+});
+
+let lintLabels = [];  // サーバーが返す判定名 [{key, label}] (表示順)
+let lintHits = [];   // 直近の結果のうち flags 付きのもの: {from, to, text, scores, flags}
+let lintCursor = -1;
+let lintPromise = Promise.resolve(); // 走っている runLint (jev→赤入れ が待つ)
+
+async function runLint() {
+  const el = $("#lint-status");
+  const sent = view.state.doc.toString();
+  el.hidden = false;
+  el.textContent = "jev 校正中…";
+  let res;
+  try {
+    res = await api("/api/lint", { method: "POST", body: sent });
+  } catch (e) {
+    el.textContent = "jev エラー";
+    el.title = String(e);
+    return;
+  }
+  if (!res.enabled) { el.hidden = true; $("#lint-btn").hidden = true; return; }
+  lintLabels = res.labels;
+  // 応答待ちの間に打った分は、文のテキストで探し直して位置を合わせる
+  const doc = view.state.doc.toString();
+  const moved = doc !== sent;
+  let cursor = 0;
+  lintHits = [];
+  for (const h of res.hits) {
+    if (!h.flags.length) continue;
+    let from = h.from, to = h.to;
+    if (moved) {
+      const i = doc.indexOf(h.text, cursor);
+      if (i < 0) continue;
+      from = i; to = i + h.text.length; cursor = to;
+    }
+    lintHits.push({ ...h, from, to });
+  }
+  const label = (k) => lintLabels.find((l) => l.key === k)?.label ?? k;
+  const marks = lintHits.map((h) => {
+    // 1 行目: 引っかかった項目。2 行目: jev の各判定値 (規則で拾ったものには値が無い)
+    const tip = h.flags.map(label).join(" / ") + "\n" +
+      lintLabels.filter((l) => l.key in h.scores)
+        .map((l) => `${l.label} ${h.scores[l.key].toFixed(2)}`).join(" · ");
+    return Decoration.mark({
+      class: "lint-mark" + (h.flags.includes("typo") ? " lint-typo" : ""),
+      attributes: { title: tip },
+    }).range(h.from, h.to);
+  });
+  view.dispatch({ effects: setLint.of(Decoration.set(marks, true)) });
+  lintCursor = -1;
+  const n = lintHits.length;
+  el.textContent = n ? `jev ${n} 件` : "jev ✓";
+  $("#lint-btn").hidden = n === 0;
+  el.title = `jev による軽い校正: ${res.sentences} 文 (キャッシュ ${res.cached}、${res.tokens.toLocaleString()} tok` +
+    (res.errors ? `、エラー ${res.errors}` : "") + ")。クリックで次の波線へ";
+}
+
+// 波線を順にたどる
+function nextLintHit() {
+  if (!lintHits.length) return;
+  lintCursor = (lintCursor + 1) % lintHits.length;
+  const h = lintHits[lintCursor];
+  view.dispatch({
+    selection: { anchor: h.from, head: h.to },
+    effects: EditorView.scrollIntoView(h.from, { y: "center" }),
+  });
+  view.focus();
 }
 
 // ---- 画像プレビュー: ![...](...) の行の直下に実画像を表示 -------------------
@@ -897,6 +999,7 @@ async function saveDoc() {
     body: view.state.doc.toString(),
   });
   setDirty(false);
+  lintPromise = runLint();
 }
 
 // ---- 画像・linkcard の挿入 --------------------------------------------------
@@ -970,6 +1073,7 @@ async function openFile(name) {
       basicSetup,
       markdown(),
       marksField,
+      lintField,
       imageField,
       EditorView.lineWrapping,
       EditorView.updateListener.of((u) => {
@@ -1031,6 +1135,8 @@ async function openFile(name) {
   });
   setDirty(false);
   reanchor();
+  lintHits = [];
+  lintPromise = runLint(); // 開いた時点でも一度かける (同じ文はサーバー側キャッシュで安い)
 }
 
 // ---- 赤入れ依頼 (裏で claude -p が走る) ------------------------------------
@@ -1042,12 +1148,14 @@ const REVIEW_BTNS = matchMedia("(max-width: 900px)").matches
       full: ["#full-btn", "📖", "📖…"],
       structure: ["#structure-btn", "🧭", "🧭…"],
       consult: ["#consult-btn", "💬", "💬…"],
+      lint: ["#lint-btn", "🪄", "🪄…"],
     }
   : {
       diff: ["#review-btn", "🖋 赤入れ", "🖋 赤入れ中…"],
       full: ["#full-btn", "📖 通し", "📖 通し中…"],
       structure: ["#structure-btn", "🧭 構成", "🧭 構成レビュー中…"],
       consult: ["#consult-btn", "💬 相談", "💬 相談中…"],
+      lint: ["#lint-btn", "🪄 jev→赤入れ", "🪄 吟味中…"],
     };
 
 function setReviewUI(running, mode = "diff") {
@@ -1078,10 +1186,16 @@ async function pollReview() {
     return;
   }
   // 新しい指摘を読み込み直す。赤入れコミットが増えているので push 数も更新
+  const before = annotations.length;
   const { annotations: anns } = await api(`/api/annotations?file=${encodeURIComponent(currentFile)}`);
   annotations = anns;
   reanchor();
   refreshPush();
+  // jev→赤入れ で全部「外れ」だったときは指摘が増えず何も起きないように見えるので、
+  // claude の報告 (何を外れとしたか) をそのまま見せる
+  if (st.mode === "lint" && anns.length === before) {
+    alert(`jev の波線は指摘になりませんでした。\n\n${st.output.trim().slice(-1500)}`);
+  }
 }
 
 async function startReview(mode, extra = {}) {
@@ -1102,6 +1216,13 @@ async function startReview(mode, extra = {}) {
 $("#review-btn").addEventListener("click", () => startReview("diff"));
 $("#full-btn").addEventListener("click", () => startReview("full"));
 $("#structure-btn").addEventListener("click", () => startReview("structure"));
+// jev の波線を claude に吟味してもらう。波線は保存時の文なので、保存してから最新の結果を送る
+$("#lint-btn").addEventListener("click", async () => {
+  if (dirty) await saveDoc();
+  await lintPromise;
+  if (!lintHits.length) { alert("jev の波線がありません"); return; }
+  startReview("lint", { hits: lintHits.map(({ text, flags, scores }) => ({ text, flags, scores })) });
+});
 
 // 相談: エディタで選択した箇所を quote として渡す。選択はボタンを押しても
 // view.state.selection に残っているのでそこから拾う
@@ -1298,6 +1419,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 $("#save").addEventListener("click", saveDoc);
+$("#lint-status").addEventListener("click", nextLintHit);
 
 function rebuildFileSelect() {
   const sel = $("#file-select");
@@ -1388,6 +1510,10 @@ $("#new-btn").addEventListener("click", async () => {
   if (!name.endsWith(".md")) {
     // content/ 配下の記事は画像を貼れるよう page bundle 形式で作る
     name += name.startsWith("content/") ? "/index.md" : ".md";
+  } else if (name.startsWith("content/") && !name.endsWith("/index.md")) {
+    // 「content/posts/foo.md」と打たれても bundle にする。単体の .md だと貼った画像が
+    // 記事の URL (/blog/yyyy/mm/dd/foo/) から見えず、プレビューで画像が出ない
+    name = name.replace(/\.md$/, "/index.md");
   }
   if (files.includes(name)) { await openFile(name); return; }
   try {

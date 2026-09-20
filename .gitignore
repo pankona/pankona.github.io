@@ -4,3 +4,5 @@ public
 tmp
 .direnv/
 node_modules
+# Claude Code の worktree (入れ子の git リポジトリ)。akaire の git add -A で gitlink として拾われないように
+.claude/worktrees/

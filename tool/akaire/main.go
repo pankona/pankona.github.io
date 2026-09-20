@@ -45,6 +45,22 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	lint := newLinter()
+	if lint.enabled() {
+		log.Printf("jev lint: 有効 (保存時に原稿本文が api.typesafe.ai へ送られる)")
+	} else {
+		log.Printf("jev lint: 無効 (TYPESAFE_API_KEY 未設定)")
+	}
+	// 保存直後にフロントから呼ばれる軽い校正。body は原稿全文
+	mux.HandleFunc("POST /api/lint", func(w http.ResponseWriter, r *http.Request) {
+		b, err := io.ReadAll(r.Body)
+		if err != nil {
+			httpError(w, err)
+			return
+		}
+		writeJSON(w, lint.lint(r.Context(), string(b)))
+	})
+
 	git := func(args ...string) (string, error) {
 		cmd := exec.Command("git", args...)
 		cmd.Dir = *dataDir
@@ -276,6 +292,9 @@ func main() {
 			http.Error(w, "unsupported image type", http.StatusBadRequest)
 			return
 		}
+		// スクショ由来の巨大な PNG をそのまま原稿に積まないよう、保存前に縮める
+		var shrunk string
+		b, ext, shrunk = shrinkImage(b, ext)
 		dir := filepath.Join(*dataDir, filepath.Dir(name))
 		if err := os.MkdirAll(dir, 0o755); err != nil {
 			httpError(w, err)
@@ -294,8 +313,12 @@ func main() {
 			httpError(w, err)
 			return
 		}
-		log.Printf("asset saved: %s (%d bytes)", filepath.Join(filepath.Dir(name), asset), len(b))
-		writeJSON(w, map[string]any{"name": asset})
+		if shrunk != "" {
+			log.Printf("asset saved: %s (%d bytes, 縮小: %s)", filepath.Join(filepath.Dir(name), asset), len(b), shrunk)
+		} else {
+			log.Printf("asset saved: %s (%d bytes)", filepath.Join(filepath.Dir(name), asset), len(b))
+		}
+		writeJSON(w, map[string]any{"name": asset, "shrunk": shrunk})
 	})
 
 	// エディタから相対参照される画像 (image-1.png など) のプレビュー用
@@ -363,10 +386,15 @@ func main() {
 
 	mux.HandleFunc("POST /api/review", func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
-			Mode  string `json:"mode"`
-			File  string `json:"file"`
-			Quote string `json:"quote"` // consult: しっくりきていない箇所の引用
-			Note  string `json:"note"`  // consult: 筆者のメモ (任意)
+			Mode  string     `json:"mode"`
+			File  string     `json:"file"`
+			Quote string     `json:"quote"` // consult: しっくりきていない箇所の引用
+			Note  string     `json:"note"`  // consult: 筆者のメモ (任意)
+			Hits  []struct { // lint: jev が波線を引いた文
+				Text   string             `json:"text"`
+				Flags  []string           `json:"flags"`
+				Scores map[string]float64 `json:"scores"`
+			} `json:"hits"`
 		}
 		_ = json.NewDecoder(r.Body).Decode(&req)
 		mode := req.Mode
@@ -408,6 +436,16 @@ func main() {
 				note = "(特になし。何が引っかかっているかの言語化も含めて相談したい)"
 			}
 			prompt = fmt.Sprintf(consultPromptFmt, doc, req.Quote, note, ann)
+		case "lint":
+			if len(req.Hits) == 0 {
+				http.Error(w, "hits required", http.StatusBadRequest)
+				return
+			}
+			var b strings.Builder
+			for i, h := range req.Hits {
+				fmt.Fprintf(&b, "%d. 引用: %s\n   jev の判定: %s\n", i+1, h.Text, lintDescribe(h.Flags, h.Scores))
+			}
+			prompt = fmt.Sprintf(lintPromptFmt, doc, b.String(), ann)
 		default:
 			http.Error(w, "unknown mode", http.StatusBadRequest)
 			return
@@ -880,6 +918,37 @@ const consultPromptFmt = `あなたはブログ原稿の赤入れ (校閲) 係�
 
 3. 原稿本文 (.md) は一切書き換えない。git commit もしない
    (%[4]s への追記だけで終了する)。`
+
+// lintPromptFmt は jev が波線を引いた文だけを claude に見てもらう指示
+// (%[1]s は対象原稿のパス, %[2]s は jev の判定つき引用の一覧, %[3]s は指摘ファイルのパス)。
+// jev は確率しか返さず理由を言えないので、それを claude が吟味して指摘に翻訳する。
+const lintPromptFmt = `あなたはブログ原稿の赤入れ (校閲) 係です。今回は、機械的な前捌き (jev という判定モデル) が
+「引っかかりそう」と印を付けた文だけを見てもらいます。jev は確率を返すだけで理由を言えないので、
+本当に問題なのかの吟味と、問題ならどう直すとよいかの指摘はあなたの仕事です。
+
+対象の原稿: %[1]s
+
+jev が印を付けた文と、その判定 (yes の確率。「誤字?」「主述のねじれ?」は文の成立、
+「一文が長い」「同じ語句の繰り返し」は読みやすさ、「ですます調」「逆接が二重」は規則による検出):
+%[2]s
+
+1. 原稿全体を読んで、各文の文脈をつかむ。見るのは上の文だけでよく、他の文への指摘はしない。
+
+2. 上の文ごとに、jev の判定が本物かを判断する:
+   - 本物なら %[3]s の annotations 配列に指摘を 1 件追記する
+     (ファイルが無ければ {"annotations": []} から作る)。quote は上の引用をそのまま使う
+     (原稿と完全一致していることを確認する)。body の末尾に (jev: 判定名 値) と出どころを添える。
+     kind は、文の成立・ですます調の混入なら "red"、読みやすさなら "pencil"
+   - 外れ (口語・体言止め・意図的な繰り返しなど、このブログの味の範囲) なら何も書かない。
+     無理に指摘をひねり出さない
+   - 既存の指摘 (dismissed / resolved を含む) と同じ趣旨なら重複させない
+
+3. 指摘の形式:
+` + annotationFormat + `
+
+4. 原稿本文 (.md) は一切書き換えない。git commit もしない
+   (%[3]s への追記だけで終了する)。
+   最後に、印の付いた文のうち何件を指摘にし、何件を外れとしたかを一行で報告する。`
 
 // docTime は原稿の「新しさ」を返す。Hugo 記事は frontmatter の date
 // (git checkout では mtime が当てにならないため)、それ以外は mtime。
