@@ -2,7 +2,7 @@
 title: "テキストを返さない AI であるところの jev を使ってみた"
 date: 2026-09-20T23:16:00+09:00
 draft: false
-categories: []
+categories: [AI]
 ---
 jevってツールが話題なので試してみた。
 
