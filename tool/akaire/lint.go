@@ -31,11 +31,14 @@ var lintChecks = []struct {
 	Key       string
 	Label     string // フロントの表示名
 	Threshold float64
+	MinRunes  int // 空白を除いた字数がこれ未満の文には出さない (0 = 制限なし)
 }{
-	{"typo", "誤字?", 0.5},
-	{"twisted", "主述のねじれ?", 0.5},
-	{"long", "一文が長い", 0.6},
-	{"repeat", "同じ語句の繰り返し", 0.55},
+	{"typo", "誤字?", 0.5, 0},
+	{"twisted", "主述のねじれ?", 0.5, 0},
+	// jev の「長い」は字数でなく節の詰め込みを見るので、括弧の挿入や語の反復がある
+	// 短い文にも反応する。字数は規則で決められるので下限を置く (本物は 70 字以上だった)
+	{"long", "一文が長い", 0.6, 70},
+	{"repeat", "同じ語句の繰り返し", 0.55, 0},
 }
 
 // 正規表現で拾うもの (jev が苦手、または規則で十分なもの)。
@@ -319,8 +322,9 @@ func (l *linter) lint(ctx context.Context, doc string) lintResult {
 			continue
 		}
 		h := lintHit{From: s.From, To: s.To, Text: s.Text, Scores: scores[i], Flags: []string{}}
+		runes := len([]rune(strings.Join(strings.Fields(s.Text), "")))
 		for _, c := range lintChecks {
-			if h.Scores[c.Key] >= c.Threshold {
+			if h.Scores[c.Key] >= c.Threshold && runes >= c.MinRunes {
 				h.Flags = append(h.Flags, c.Key)
 			}
 		}
