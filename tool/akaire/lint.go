@@ -191,7 +191,10 @@ func splitSentences(doc string) []lintSentence {
 			if trimmed != "" {
 				lead := strings.Index(seg, trimmed)
 				plain := strings.TrimSpace(reLintInline.ReplaceAllString(trimmed, "$1"))
-				if len([]rune(plain)) >= 6 {
+				// 読点やコロンで終わる行は箇条書きなどへ続く導入で、それ単体では
+				// 述語が無いのが正常。断片として jev に渡すと「ねじれ」に誤判定される
+				if len([]rune(plain)) >= 6 && !strings.HasSuffix(plain, "、") &&
+					!strings.HasSuffix(plain, "：") && !strings.HasSuffix(plain, ":") {
 					out = append(out, lintSentence{
 						From: base + utf16Len(body[:segStart+lead]),
 						To:   base + utf16Len(body[:segStart+lead]) + utf16Len(trimmed),

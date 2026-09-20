@@ -22,6 +22,8 @@ func TestSplitSentences(t *testing.T) {
 		"[リンク](https://example.com)を含む文である。",
 		"短い。",
 		"これはですます調の文です。",
+		"思ったことは、",
+		"- 箇条書きへ続く導入は判定しない。",
 	}, "\n")
 	got := splitSentences(doc)
 	want := []string{
@@ -29,6 +31,7 @@ func TestSplitSentences(t *testing.T) {
 		"箇条書きの文である。",
 		"リンクを含む文である。",
 		"これはですます調の文です。",
+		"箇条書きへ続く導入は判定しない。",
 	}
 	if len(got) != len(want) {
 		t.Fatalf("got %d sentences, want %d: %+v", len(got), len(want), got)
