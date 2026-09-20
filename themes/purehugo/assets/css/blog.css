@@ -444,10 +444,12 @@ section.post {
 }
 .img-caption img {
     display: block;
+    margin: 0 auto; /* 本文幅より狭い画像はキャプションと一緒に中央へ */
 }
 .img-caption figcaption {
     margin-top: 0.4em;
     font-size: 0.85em;
     color: #767676;
     line-height: 1.5;
+    text-align: center;
 }
