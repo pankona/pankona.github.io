@@ -443,7 +443,7 @@ func main() {
 			}
 			var b strings.Builder
 			for i, h := range req.Hits {
-				fmt.Fprintf(&b, "%d. 引用: %s\n   jev の判定: %s\n", i+1, h.Text, lintDescribe(h.Flags, h.Scores))
+				fmt.Fprintf(&b, "%d. 引用: %s\n   jev の判定: %s\n", i+1, h.Text, lint.describe(h.Flags, h.Scores))
 			}
 			prompt = fmt.Sprintf(lintPromptFmt, doc, b.String(), ann)
 		default:
