@@ -1,72 +1,37 @@
 package main
 
 import (
+	"context"
 	"strings"
 	"testing"
+	"unicode/utf16"
+
+	jjl "github.com/pankona/japanese-jev-lint"
 )
 
-func TestSplitSentences(t *testing.T) {
+// 文の分割と判定は jjl 側でテストしている。ここでは UTF-16 への位置変換だけ見る。
+func TestToHitsUTF16(t *testing.T) {
 	doc := strings.Join([]string{
-		"---",
-		"title: テスト",
-		"---",
-		"",
-		"# 見出し",
-		"",
-		"最初の文である。二つ目の文だ！三つ目はどうか？",
-		"- 箇条書きの文である。",
-		"```",
-		"code。code。",
-		"```",
-		"![alt](img.png)",
-		"[リンク](https://example.com)を含む文である。",
-		"短い。",
+		"---", "title: テスト", "---", "",
+		"最初の文である。二つ目の文だ！",
+		"- 箇条書きの文である。𠮷野家の話である。", // サロゲートペアを含む
 		"これはですます調の文です。",
-		"「ジャンルは？」って聞くと答えが返る。",
-		"思ったことは、",
-		"- 箇条書きへ続く導入は判定しない。",
 	}, "\n")
-	got := splitSentences(doc)
-	want := []string{
-		"最初の文である。", "二つ目の文だ！", "三つ目はどうか？",
-		"箇条書きの文である。",
-		"リンクを含む文である。",
-		"これはですます調の文です。",
-		"「ジャンルは？」って聞くと答えが返る。",
-		"箇条書きへ続く導入は判定しない。",
+	src := []byte(doc)
+	// jev には聞かず正規表現判定だけ (Client なし)
+	r := (&jjl.Linter{Config: jjl.DefaultConfig()}).Lint(context.Background(), "", src)
+	hits := toHits(src, r.Items)
+	want := []string{"最初の文である。", "二つ目の文だ！", "箇条書きの文である。", "𠮷野家の話である。", "これはですます調の文です。"}
+	if len(hits) != len(want) {
+		t.Fatalf("hits = %d, want %d", len(hits), len(want))
 	}
-	if len(got) != len(want) {
-		t.Fatalf("got %d sentences, want %d: %+v", len(got), len(want), got)
-	}
-	for i, w := range want {
-		if got[i].Text != w {
-			t.Errorf("[%d] text = %q, want %q", i, got[i].Text, w)
+	u16 := utf16.Encode([]rune(doc))
+	for i, h := range hits {
+		if got := string(utf16.Decode(u16[h.From:h.To])); got != want[i] {
+			t.Errorf("[%d] utf16 range points to %q, want %q", i, got, want[i])
 		}
 	}
-	// 位置は UTF-16 オフセットで、原稿の該当箇所を指す
-	runes := utf16Runes(doc)
-	if s := string(runes[got[1].From:got[1].To]); s != "二つ目の文だ！" {
-		t.Errorf("offset of [1] points to %q", s)
-	}
-	if s := string(runes[got[3].From:got[3].To]); s != "箇条書きの文である。" {
-		t.Errorf("offset of [3] points to %q", s)
-	}
-	if got[1].Prev != "最初の文である。" || got[1].Next != "三つ目はどうか？" {
-		t.Errorf("context of [1] = %q / %q", got[1].Prev, got[1].Next)
-	}
-	re := lintRegexChecks[0].Re // desumasu
-	if !re.MatchString(got[5].Text) || re.MatchString(got[0].Text) {
-		t.Errorf("desumasu detection wrong")
-	}
-	ga := lintRegexChecks[1] // double_ga
-	if n := len(ga.Re.FindAllStringIndex("詳しくは分からないが、どうやら LLM ではあるが、テキストは出せない。", -1)); n < ga.Min {
-		t.Errorf("double_ga: got %d matches", n)
-	}
-	if n := len(ga.Re.FindAllStringIndex("分からないが、試してみた。", -1)); n >= ga.Min {
-		t.Errorf("double_ga false positive: %d", n)
+	if len(hits[4].Flags) != 1 || hits[4].Flags[0] != "desumasu" {
+		t.Errorf("flags of [4] = %v", hits[4].Flags)
 	}
 }
-
-// utf16Runes は UTF-16 単位で添字が引けるよう、サロゲートペアを考慮せずに
-// テスト用に BMP 前提で rune 列を返す
-func utf16Runes(s string) []rune { return []rune(s) }
