@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- akaire: 原稿用紙に朱の丸と波線。16px でも読めるよう要素は少なく太く -->
+  <rect x="1" y="1" width="30" height="30" rx="7" fill="#fffdf8" stroke="#bfb59c" stroke-width="2"/>
+  <g stroke="#a39b88" stroke-width="3" stroke-linecap="round">
+    <line x1="8" y1="9" x2="24" y2="9"/>
+    <line x1="8" y1="16" x2="18" y2="16"/>
+  </g>
+  <ellipse cx="15" cy="16" rx="10" ry="6" fill="none" stroke="#c0392b" stroke-width="3"/>
+  <path d="M7 26 q2.5 -3 5 0 t5 0 t5 0 t5 0" fill="none" stroke="#c0392b" stroke-width="3" stroke-linecap="round"/>
+</svg>

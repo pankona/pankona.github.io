@@ -29,7 +29,7 @@ import (
 	"github.com/pankona/pankona.github.io/tool/imagemeta"
 )
 
-//go:embed index.html
+//go:embed index.html favicon.svg
 var indexHTML embed.FS
 
 func main() {
@@ -124,6 +124,16 @@ func main() {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(b)
 	})
+
+	// タブで見分けるためのファビコン (原稿用紙に朱の丸と波線)。/favicon.ico も同じ SVG を返す
+	for _, p := range []string{"GET /favicon.svg", "GET /favicon.ico"} {
+		mux.HandleFunc(p, func(w http.ResponseWriter, r *http.Request) {
+			b, _ := indexHTML.ReadFile("favicon.svg")
+			w.Header().Set("Content-Type", "image/svg+xml")
+			w.Header().Set("Cache-Control", "public, max-age=86400")
+			w.Write(b)
+		})
+	}
 
 	mux.HandleFunc("GET /api/files", func(w http.ResponseWriter, r *http.Request) {
 		type entry struct {

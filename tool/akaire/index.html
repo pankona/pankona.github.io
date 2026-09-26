@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>akaire — 赤入れエディタ</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -569,6 +570,13 @@
   #sheet-resolve { border-color: #9dbb93; color: #4a7c3f; }
   #sheet-actions { display: flex; gap: 8px; flex: none; }
   #sheet.list #sheet-actions, #sheet.list #sheet-prev, #sheet.list #sheet-next { display: none; }
+  /* jev の波線の中身 (見送り・対応済みは無い。書き直せば消える) */
+  #sheet.lint { border-top-color: #c9a227; }
+  #sheet.lint #sheet-actions { display: none; }
+  #sheet.lint .lint-flags { font-weight: 600; margin-bottom: 4px; }
+  #sheet.lint .lint-scores { font-size: 13px; color: #9a927f; margin-bottom: 6px; }
+  #sheet.lint .lint-scores b { color: #8a6d0f; }
+  #sheet.lint .lint-quote { border-left: 3px solid #c9a227; padding: 4px 10px; background: rgba(0,0,0,0.02); border-radius: 3px; }
 
   @media (max-width: 900px) {
     /* ボタンが増えてもページ幅を広げない (広がるとシートが画面外にはみ出す) */
@@ -583,6 +591,7 @@
     #new-btn { padding: 4px 10px; font-size: 12px; }
     /* レビュー系ボタンは絵文字のみ表示 (ラベルは JS 側で切替) */
     #review-btn, #full-btn, #structure-btn, #consult-btn, #lint-btn { padding: 4px 9px; font-size: 14px; }
+    #lint-cfg-btn, #claude-cfg-btn { padding: 4px 8px; font-size: 12px; }
     #save { flex: none; white-space: nowrap; }
     #save .kbd { display: none; }
     #list-btn { display: inline-block; }
@@ -899,6 +908,7 @@ async function runLint() {
   });
   view.dispatch({ effects: setLint.of(Decoration.set(marks, true)) });
   lintCursor = -1;
+  if (sheetLintIdx >= 0) closeSheet(); // 波線が引き直されたので古い中身は閉じる
   const n = lintHits.length;
   el.textContent = n ? `jev ${n} 件` : "jev ✓";
   $("#lint-btn").hidden = n === 0;
@@ -910,12 +920,54 @@ async function runLint() {
 function nextLintHit() {
   if (!lintHits.length) return;
   lintCursor = (lintCursor + 1) % lintHits.length;
+  if (isMobile()) { openLintSheet(lintCursor); return; }
   const h = lintHits[lintCursor];
   view.dispatch({
     selection: { anchor: h.from, head: h.to },
     effects: EditorView.scrollIntoView(h.from, { y: "center" }),
   });
   view.focus();
+}
+
+const isMobile = () => matchMedia("(max-width: 900px)").matches;
+
+// スマホには title のツールチップが無いので、波線の文をタップ (または「jev N 件」) で
+// ボトムシートに判定の中身を出す。PC はホバーで見えるので出さない
+let sheetLintIdx = -1; // シートに出している波線の番号。出していなければ -1
+
+function openLintSheet(i) {
+  if (!lintHits.length) return;
+  i = ((i % lintHits.length) + lintHits.length) % lintHits.length;
+  const h = lintHits[i];
+  sheetAnnId = null;
+  sheetLintIdx = lintCursor = i;
+  const label = (k) => lintLabels.find((l) => l.key === k)?.label ?? k;
+  $("#sheet-meta").innerHTML = `<span class="who">jev の波線</span>`;
+  $("#sheet-idx").textContent = `${i + 1} / ${lintHits.length}`;
+  const body = $("#sheet-body");
+  body.textContent = "";
+  const flags = document.createElement("div");
+  flags.className = "lint-flags";
+  flags.textContent = h.flags.map(label).join(" / ");
+  const scores = document.createElement("div");
+  scores.className = "lint-scores";
+  scores.innerHTML = lintLabels.filter((l) => l.key in h.scores)
+    .map((l) => (h.flags.includes(l.key) ? `<b>${l.label} ${h.scores[l.key].toFixed(2)}</b>` : `${l.label} ${h.scores[l.key].toFixed(2)}`))
+    .join(" · ") || "(規則で拾ったもの。確率は無い)";
+  const quote = document.createElement("div");
+  quote.className = "lint-quote";
+  quote.textContent = h.text;
+  body.append(flags, scores, quote);
+  $("#sheet").className = "open lint";
+  view.dispatch({
+    selection: { anchor: h.from, head: h.to },
+    effects: EditorView.scrollIntoView(h.from, { y: "start", yMargin: 90 }),
+  });
+}
+
+// エディタ内の波線タップ → その文のシート
+function lintHitAt(pos) {
+  return lintHits.findIndex((h) => h.from <= pos && pos <= h.to);
 }
 
 // ---- jev 設定モーダル --------------------------------------------------------
@@ -1383,6 +1435,7 @@ function openListSheet() {
 
 function closeSheet() {
   sheetAnnId = null;
+  sheetLintIdx = -1;
   $("#sheet").className = "";
 }
 
@@ -1397,8 +1450,8 @@ function flash(id) {
 
 $("#list-btn").addEventListener("click", openListSheet);
 $("#sheet-close").addEventListener("click", closeSheet);
-$("#sheet-prev").addEventListener("click", () => openAnnSheet(sheetIndex() - 1));
-$("#sheet-next").addEventListener("click", () => openAnnSheet(sheetIndex() + 1));
+$("#sheet-prev").addEventListener("click", () => sheetLintIdx >= 0 ? openLintSheet(sheetLintIdx - 1) : openAnnSheet(sheetIndex() - 1));
+$("#sheet-next").addEventListener("click", () => sheetLintIdx >= 0 ? openLintSheet(sheetLintIdx + 1) : openAnnSheet(sheetIndex() + 1));
 async function markSheetAnn(field) {
   const i = sheetIndex();
   if (i < 0) return;
@@ -1565,6 +1618,14 @@ async function openFile(name) {
         },
       }),
     ],
+  });
+  // スマホで波線の文をタップ → jev の判定をシートに出す (カーソル移動は妨げない)。
+  // CodeMirror の domEventHandlers ではなく素の DOM リスナー (click はエディタ側で消費されることがある)
+  view.dom.addEventListener("click", (e) => {
+    if (!isMobile() || !e.target.closest?.(".lint-mark")) return;
+    const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+    const i = pos === null ? -1 : lintHitAt(pos);
+    if (i >= 0) openLintSheet(i);
   });
   setDirty(false);
   reanchor();
