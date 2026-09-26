@@ -333,6 +333,138 @@
   #review-btn:disabled, #full-btn:disabled,
   #structure-btn:disabled, #consult-btn:disabled, #lint-btn:disabled { opacity: 0.5; cursor: default; }
   #lint-btn[hidden] { display: none; }
+  #lint-cfg-btn, #claude-cfg-btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--pencil);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #lint-cfg-btn[hidden] { display: none; }
+
+  /* ---- jev 設定モーダル ---- */
+  #ask-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #ask-modal[hidden] { display: none; }
+  #ask-box {
+    background: #fffdf8;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 16px;
+    width: min(440px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-family: "Zen Kurenaido", sans-serif;
+    font-size: 13.5px;
+    color: #444;
+  }
+  #ask-text { white-space: pre-wrap; }
+  #ask-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  #ask-actions button {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--pencil);
+    cursor: pointer;
+  }
+  #ask-actions button.primary { border-color: var(--red); color: var(--red); }
+  #lint-modal, #claude-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #lint-modal[hidden], #claude-modal[hidden] { display: none; }
+  #lint-box, #claude-box {
+    background: #fffdf8;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 16px;
+    width: min(640px, 100%);
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: "Zen Kurenaido", sans-serif;
+    font-size: 13.5px;
+    color: #444;
+  }
+  #claude-box { width: min(760px, 100%); }
+  #lint-title, #claude-title { font-size: 13px; color: #9a927f; }
+  #lint-list, #claude-list { overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+  #claude-list .lc textarea { font-family: ui-monospace, monospace; font-size: 12px; min-height: 8em; }
+  #claude-list .lc .mono { font-family: ui-monospace, monospace; }
+  #claude-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 12.5px; }
+  #claude-head label { display: inline-flex; align-items: center; gap: 6px; }
+  #claude-head input, #claude-head select { font: inherit; font-size: 12.5px; }
+  #claude-head input { width: 200px; }
+  .lc {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--pencil);
+    border-radius: 3px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lc.off { opacity: 0.55; }
+  .lc .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .lc .name { font-weight: 600; flex: 1; }
+  .lc .key { font-size: 11px; color: #9a927f; }
+  .lc label { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .lc input[type="range"] { width: 140px; }
+  .lc input[type="number"] { width: 64px; font: inherit; font-size: 13px; }
+  .lc input[type="text"], .lc textarea {
+    font: inherit;
+    font-size: 12.5px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 3px 6px;
+    background: #fff;
+  }
+  .lc textarea { resize: vertical; min-height: 2.4em; }
+  .lc details summary { cursor: pointer; font-size: 12px; color: #9a927f; }
+  .lc details > div { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .lc .hint { font-size: 11px; color: #9a927f; }
+  #lint-model { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  #lint-model input { font: inherit; font-size: 12.5px; width: 160px; }
+  #lint-actions, #claude-actions { display: flex; gap: 8px; align-items: center; }
+  #lint-actions .msg, #claude-actions .msg { flex: 1; font-size: 12px; color: var(--red); min-height: 1em; }
+  #lint-actions button, #claude-actions button {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 12px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--pencil);
+    cursor: pointer;
+  }
+  #lint-actions #lint-apply, #claude-actions #claude-apply { border-color: var(--red); color: var(--red); }
   #push-btn {
     font: inherit;
     font-size: 13px;
@@ -478,11 +610,14 @@
   </div>
   <div class="hrow">
     <button id="list-btn">🖍 指摘</button>
+    <!-- 執筆で押す順に並べる: 構成 (書き始め) → 赤入れ (書きながら) → 通し (仕上げ) / 相談 (随時) -->
+    <button id="structure-btn" title="タイトル・章立て・話の流れなど、構成レベルでレビューしてもらう">🧭 構成</button>
     <button id="review-btn" title="変更箇所を Claude に赤入れしてもらう">🖋 赤入れ</button>
     <button id="full-btn" title="いま開いている原稿の全文を通しで赤入れしてもらう (仕上げ用)">📖 通し</button>
-    <button id="structure-btn" title="タイトル・章立て・話の流れなど、構成レベルでレビューしてもらう">🧭 構成</button>
     <button id="consult-btn" title="しっくりこない箇所を選択してから押すと、診断と言い換え案が返ってくる">💬 相談</button>
     <button id="lint-btn" title="jev が波線を引いた文だけを Claude に吟味してもらい、本物なら指摘にする" hidden>🪄 jev→赤入れ</button>
+    <button id="lint-cfg-btn" title="jev 校正の設定 (判定の on/off・閾値・質問文)" hidden>⚙ jev</button>
+    <button id="claude-cfg-btn" title="赤入れ・通し・構成・相談に使う claude -p の設定 (モデル・エフォート・プロンプト雛形)">⚙ Claude</button>
     <span id="counter"></span>
     <div class="hspacer"></div>
     <span id="branch" title="push 先のブランチ"></span>
@@ -493,6 +628,43 @@
 <div id="main">
   <div id="editor-wrap"></div>
   <div id="margin-wrap"></div>
+</div>
+<div id="lint-modal" hidden>
+  <div id="lint-box">
+    <div id="lint-title">jev 校正の設定。閾値・字数下限・on/off は jev に聞き直さず即座に効く (キャッシュ済み)。質問文とモデルを変えると全文を聞き直す (課金あり)</div>
+    <div id="lint-list"></div>
+    <div id="lint-model"><span>モデル</span><input id="lint-model-input" type="text"><span class="hint" id="lint-path"></span></div>
+    <div id="lint-actions">
+      <button id="lint-reset">既定に戻す</button>
+      <span class="msg" id="lint-msg"></span>
+      <button id="lint-cancel">閉じる</button>
+      <button id="lint-apply">適用して再判定</button>
+    </div>
+  </div>
+</div>
+<div id="ask-modal" hidden>
+  <div id="ask-box">
+    <div id="ask-text"></div>
+    <div id="ask-actions"></div>
+  </div>
+</div>
+<div id="claude-modal" hidden>
+  <div id="claude-box">
+    <div id="claude-title">赤入れ・通し・構成・相談・jev→赤入れ で起動する claude -p の設定。モデルとエフォートが空なら claude の既定 (フラグを渡さない)。雛形は次回の起動から効く</div>
+    <div id="claude-head">
+      <label>モデル <input id="claude-model" type="text" list="claude-models" placeholder="既定 (例: fable / opus / sonnet)"></label>
+      <datalist id="claude-models"><option value="fable"><option value="opus"><option value="sonnet"><option value="haiku"></datalist>
+      <label>エフォート <select id="claude-effort"></select></label>
+      <span class="hint" id="claude-path"></span>
+    </div>
+    <div id="claude-list"></div>
+    <div id="claude-actions">
+      <button id="claude-reset">すべて既定に戻す</button>
+      <span class="msg" id="claude-msg"></span>
+      <button id="claude-cancel">閉じる</button>
+      <button id="claude-apply">適用</button>
+    </div>
+  </div>
 </div>
 <div id="cat-modal" hidden>
   <div id="cat-box">
@@ -696,7 +868,8 @@ async function runLint() {
     el.title = String(e);
     return;
   }
-  if (!res.enabled) { el.hidden = true; $("#lint-btn").hidden = true; return; }
+  if (!res.enabled) { el.hidden = true; $("#lint-btn").hidden = true; $("#lint-cfg-btn").hidden = true; return; }
+  $("#lint-cfg-btn").hidden = false;
   lintLabels = res.labels;
   // 応答待ちの間に打った分は、文のテキストで探し直して位置を合わせる
   const doc = view.state.doc.toString();
@@ -744,6 +917,221 @@ function nextLintHit() {
   });
   view.focus();
 }
+
+// ---- jev 設定モーダル --------------------------------------------------------
+//
+// サーバーの設定 (jjl の Config + 無効化フラグ) をフォームにして、「適用」で PUT →
+// /api/lint を叩き直す。閾値だけの変更は jev の応答キャッシュが効くので一瞬で
+// 波線が引き直され、試行錯誤が速い。
+
+let lintSettings = null; // 編集中の設定 (サーバーから取った JSON をそのまま持つ)
+
+function lintCheckRow(c, i) {
+  const el = document.createElement("div");
+  el.className = "lc" + (c.disabled ? " off" : "");
+  el.innerHTML = `
+    <div class="row">
+      <label><input type="checkbox" class="on" ${c.disabled ? "" : "checked"}> <span class="name"></span></label>
+      <span class="key"></span>
+    </div>
+    <div class="row">
+      <label>閾値 <input type="range" class="th" min="0" max="1" step="0.01"> <input type="number" class="thn" min="0" max="1" step="0.01"></label>
+      <label>字数下限 <input type="number" class="mr" min="0" step="1"></label>
+      <span class="hint">確率がこの値以上で波線。字数下限は空白抜きの字数がこれ未満なら出さない (0 で無効)</span>
+    </div>
+    <details>
+      <summary>質問文 (変えると聞き直し)</summary>
+      <div>
+        <label>表示名 <input type="text" class="lb"></label>
+        <span class="hint">instructions</span><textarea class="qi" rows="3"></textarea>
+        <span class="hint">true (yes と判定する基準)</span><textarea class="qt" rows="2"></textarea>
+        <span class="hint">false (no と判定する基準)</span><textarea class="qf" rows="2"></textarea>
+      </div>
+    </details>`;
+  el.querySelector(".name").textContent = c.label;
+  el.querySelector(".key").textContent = c.key;
+  const th = el.querySelector(".th"), thn = el.querySelector(".thn");
+  th.value = thn.value = c.threshold;
+  el.querySelector(".mr").value = c.min_runes ?? 0;
+  el.querySelector(".lb").value = c.label;
+  el.querySelector(".qi").value = c.question.instructions;
+  el.querySelector(".qt").value = c.question.true;
+  el.querySelector(".qf").value = c.question.false;
+  el.querySelector(".on").addEventListener("change", (e) => {
+    c.disabled = !e.target.checked;
+    el.classList.toggle("off", c.disabled);
+  });
+  th.addEventListener("input", () => { thn.value = th.value; c.threshold = Number(th.value); });
+  thn.addEventListener("input", () => { th.value = thn.value; c.threshold = Number(thn.value); });
+  el.querySelector(".mr").addEventListener("input", (e) => { c.min_runes = Number(e.target.value) || 0; });
+  el.querySelector(".lb").addEventListener("input", (e) => { c.label = e.target.value; el.querySelector(".name").textContent = c.label; });
+  el.querySelector(".qi").addEventListener("input", (e) => { c.question.instructions = e.target.value; });
+  el.querySelector(".qt").addEventListener("input", (e) => { c.question.true = e.target.value; });
+  el.querySelector(".qf").addEventListener("input", (e) => { c.question.false = e.target.value; });
+  return el;
+}
+
+function lintRegexRow(c) {
+  const el = document.createElement("div");
+  el.className = "lc" + (c.disabled ? " off" : "");
+  el.innerHTML = `
+    <div class="row">
+      <label><input type="checkbox" class="on" ${c.disabled ? "" : "checked"}> <span class="name"></span></label>
+      <span class="key"></span>
+      <span class="hint">正規表現 (jev には聞かない)</span>
+    </div>
+    <div class="row">
+      <label>マッチ数 <input type="number" class="mn" min="1" step="1"></label>
+      <span class="hint">一文の中でこの回数以上マッチしたら波線</span>
+    </div>
+    <details>
+      <summary>パターン</summary>
+      <div>
+        <label>表示名 <input type="text" class="lb"></label>
+        <span class="hint">pattern (Go の正規表現)</span><input type="text" class="pt">
+      </div>
+    </details>`;
+  el.querySelector(".name").textContent = c.label;
+  el.querySelector(".key").textContent = c.key;
+  el.querySelector(".mn").value = c.min;
+  el.querySelector(".lb").value = c.label;
+  el.querySelector(".pt").value = c.pattern;
+  el.querySelector(".on").addEventListener("change", (e) => {
+    c.disabled = !e.target.checked;
+    el.classList.toggle("off", c.disabled);
+  });
+  el.querySelector(".mn").addEventListener("input", (e) => { c.min = Number(e.target.value) || 1; });
+  el.querySelector(".lb").addEventListener("input", (e) => { c.label = e.target.value; el.querySelector(".name").textContent = c.label; });
+  el.querySelector(".pt").addEventListener("input", (e) => { c.pattern = e.target.value; });
+  return el;
+}
+
+function renderLintSettings() {
+  const list = $("#lint-list");
+  list.textContent = "";
+  lintSettings.checks.forEach((c, i) => list.append(lintCheckRow(c, i)));
+  lintSettings.regex_checks.forEach((c) => list.append(lintRegexRow(c)));
+  $("#lint-model-input").value = lintSettings.model;
+  $("#lint-msg").textContent = "";
+}
+
+async function openLintSettings() {
+  const res = await api("/api/lint/config");
+  lintSettings = res.settings;
+  $("#lint-path").textContent = res.path ? `保存先: ${res.path}` : "(保存しない)";
+  renderLintSettings();
+  $("#lint-modal").hidden = false;
+}
+
+async function applyLintSettings() {
+  lintSettings.model = $("#lint-model-input").value.trim();
+  const msg = $("#lint-msg");
+  msg.textContent = "";
+  try {
+    await api("/api/lint/config", { method: "PUT", body: JSON.stringify(lintSettings) });
+  } catch (e) {
+    msg.textContent = String(e.message || e);
+    return;
+  }
+  lintPromise = runLint();
+  await lintPromise;
+}
+
+$("#lint-cfg-btn").addEventListener("click", openLintSettings);
+$("#lint-cancel").addEventListener("click", () => { $("#lint-modal").hidden = true; });
+$("#lint-modal").addEventListener("click", (e) => { if (e.target === $("#lint-modal")) $("#lint-modal").hidden = true; });
+$("#lint-apply").addEventListener("click", applyLintSettings);
+$("#lint-reset").addEventListener("click", async () => {
+  if (!confirm("jev の設定を既定に戻す?")) return;
+  const res = await api("/api/lint/config", { method: "DELETE" });
+  lintSettings = res.settings;
+  renderLintSettings();
+  lintPromise = runLint();
+});
+
+// ---- Claude 設定モーダル -----------------------------------------------------
+//
+// モデル・エフォート・モードごとのプロンプト雛形。雛形は Go の fmt 書式なので
+// %[1]s 等の凡例を各欄に出す。「適用」で PUT (サーバー側で書式を検証)。
+
+let claudeSettings = null;
+let claudeDefaults = null;
+
+function claudePromptRow(mode) {
+  const el = document.createElement("div");
+  el.className = "lc";
+  el.innerHTML = `
+    <div class="row">
+      <span class="name"></span>
+      <span class="key"></span>
+      <button class="rst" type="button">この雛形を既定に戻す</button>
+    </div>
+    <span class="hint mono"></span>
+    <textarea class="pr" spellcheck="false"></textarea>`;
+  el.querySelector(".name").textContent = mode.label;
+  el.querySelector(".key").textContent = mode.key;
+  el.querySelector(".hint").textContent =
+    mode.args.map((a, i) => `%[${i + 1}]s = ${a}`).join("、") + "。生の % は %% と書く";
+  const ta = el.querySelector(".pr");
+  ta.value = claudeSettings.prompts[mode.key] ?? claudeDefaults.prompts[mode.key];
+  ta.addEventListener("input", () => { claudeSettings.prompts[mode.key] = ta.value; });
+  el.querySelector(".rst").addEventListener("click", () => {
+    ta.value = claudeDefaults.prompts[mode.key];
+    claudeSettings.prompts[mode.key] = ta.value;
+  });
+  return el;
+}
+
+function renderClaudeSettings(res) {
+  $("#claude-model").value = claudeSettings.model ?? "";
+  const sel = $("#claude-effort");
+  sel.innerHTML = `<option value="">既定</option>` + res.efforts.map((e) => `<option value="${e}">${e}</option>`).join("");
+  sel.value = claudeSettings.effort ?? "";
+  const list = $("#claude-list");
+  list.textContent = "";
+  for (const m of res.modes) list.append(claudePromptRow(m));
+  $("#claude-msg").textContent = "";
+}
+
+let claudeMeta = null; // modes / efforts (サーバーから)
+
+async function openClaudeSettings() {
+  const res = await api("/api/claude/config");
+  claudeSettings = res.settings;
+  claudeDefaults = res.defaults;
+  claudeMeta = res;
+  $("#claude-path").textContent = res.path ? `保存先: ${res.path}` : "(保存しない)";
+  renderClaudeSettings(res);
+  $("#claude-modal").hidden = false;
+}
+
+async function applyClaudeSettings() {
+  claudeSettings.model = $("#claude-model").value.trim();
+  claudeSettings.effort = $("#claude-effort").value;
+  const msg = $("#claude-msg");
+  msg.textContent = "";
+  try {
+    const r = await fetch("/api/claude/config", { method: "PUT", body: JSON.stringify(claudeSettings) });
+    if (!r.ok) { msg.textContent = await r.text(); return; }
+  } catch (e) {
+    msg.textContent = String(e.message || e);
+    return;
+  }
+  msg.style.color = "#4a7c3f";
+  msg.textContent = "保存した";
+  setTimeout(() => { msg.textContent = ""; msg.style.color = ""; }, 1500);
+}
+
+$("#claude-cfg-btn").addEventListener("click", openClaudeSettings);
+$("#claude-cancel").addEventListener("click", () => { $("#claude-modal").hidden = true; });
+$("#claude-modal").addEventListener("click", (e) => { if (e.target === $("#claude-modal")) $("#claude-modal").hidden = true; });
+$("#claude-apply").addEventListener("click", applyClaudeSettings);
+$("#claude-reset").addEventListener("click", async () => {
+  if (!confirm("Claude の設定 (モデル・エフォート・全モードの雛形) を既定に戻す?")) return;
+  const res = await api("/api/claude/config", { method: "DELETE" });
+  claudeSettings = res.settings;
+  renderClaudeSettings(claudeMeta);
+});
 
 // ---- 画像プレビュー: ![...](...) の行の直下に実画像を表示 -------------------
 
@@ -1260,7 +1648,51 @@ async function startReview(mode, extra = {}) {
 }
 $("#review-btn").addEventListener("click", () => startReview("diff"));
 $("#full-btn").addEventListener("click", () => startReview("full"));
-$("#structure-btn").addEventListener("click", () => startReview("structure"));
+// 構成レビューの指摘かどうか。新しいものは origin で判別し、それ以前のものは
+// claude が付けていた "kosei-" 始まりの id で拾う
+const isStructureAnn = (a) => a.origin === "structure" || /^kosei-/.test(a.id);
+
+// 構成: 前回の構成レビューが残っていれば、消してやり直すか聞く。見送り (dismissed) に
+// しただけだと viewpoints の「既存の指摘を蒸し返さない」が効いて同じ指摘が出なくなるので、
+// 書き直した原稿をまっさらに見てもらうには削除が要る
+$("#structure-btn").addEventListener("click", async () => {
+  const prev = annotations.filter(isStructureAnn);
+  if (!prev.length) { startReview("structure"); return; }
+  const open = prev.filter((a) => !a.dismissed && !a.resolved).length;
+  const choice = await ask(
+    `前回の構成レビューの指摘が ${prev.length} 件あります (未対応 ${open} 件、残りは見送り・対応済み)。
+` +
+    "消してからやり直すと、書き直した原稿をまっさらに見てもらえます。残したまま追記すると、同じ趣旨の指摘は出ません。",
+    [["delete", "消してやり直す", true], ["append", "残したまま追記"], ["cancel", "やめる"]]
+  );
+  if (choice === "cancel") return;
+  if (choice === "delete") {
+    annotations = annotations.filter((a) => !isStructureAnn(a));
+    await saveAnnotations();
+    reanchor();
+  }
+  startReview("structure");
+});
+
+// 小さな選択ダイアログ。choices は [value, label, primary?] の配列。背景クリックは末尾の選択肢
+function ask(text, choices) {
+  return new Promise((resolve) => {
+    const modal = $("#ask-modal");
+    $("#ask-text").textContent = text;
+    const box = $("#ask-actions");
+    box.textContent = "";
+    const done = (v) => { modal.hidden = true; modal.onclick = null; resolve(v); };
+    for (const [value, label, primary] of choices) {
+      const b = document.createElement("button");
+      b.textContent = label;
+      if (primary) b.className = "primary";
+      b.addEventListener("click", () => done(value));
+      box.append(b);
+    }
+    modal.onclick = (e) => { if (e.target === modal) done(choices[choices.length - 1][0]); };
+    modal.hidden = false;
+  });
+}
 // jev の波線を claude に吟味してもらう。波線は保存時の文なので、保存してから最新の結果を送る
 $("#lint-btn").addEventListener("click", async () => {
   if (dirty) await saveDoc();

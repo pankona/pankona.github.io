@@ -35,6 +35,8 @@ var indexHTML embed.FS
 func main() {
 	addr := flag.String("addr", "127.0.0.1:8433", "listen address")
 	dataDir := flag.String("data", "demo-data", "directory containing .md files")
+	lintConfig := flag.String("lint-config", defaultLintConfigPath(), "jev 校正の設定 (閾値・質問文) の保存先 JSON。空なら保存しない")
+	claudeConfigPath := flag.String("claude-config", defaultClaudeConfigPath(), "claude -p の設定 (モデル・エフォート・プロンプト雛形) の保存先 JSON。空なら保存しない")
 	flag.Parse()
 	viewpointsFile, err := resolveViewpoints(*dataDir)
 	if err != nil {
@@ -45,9 +47,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	lint := newLinter()
+	lint := newLinter(*lintConfig)
 	if lint.enabled() {
-		log.Printf("jev lint: 有効 (保存時に原稿本文が api.typesafe.ai へ送られる)")
+		log.Printf("jev lint: 有効 (保存時に原稿本文が api.typesafe.ai へ送られる)。設定: %s", *lintConfig)
 	} else {
 		log.Printf("jev lint: 無効 (TYPESAFE_API_KEY 未設定)")
 	}
@@ -59,6 +61,30 @@ func main() {
 			return
 		}
 		writeJSON(w, lint.lint(r.Context(), string(b)))
+	})
+	// jev の設定 (閾値・字数下限・on/off・質問文・正規表現)。GET で現在値、PUT で差し替え、
+	// DELETE で既定に戻す。差し替え後の再判定はフロントが /api/lint を叩き直す
+	mux.HandleFunc("GET /api/lint/config", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, map[string]any{"settings": lint.getSettings(), "defaults": defaultLintSettings(), "path": *lintConfig})
+	})
+	mux.HandleFunc("PUT /api/lint/config", func(w http.ResponseWriter, r *http.Request) {
+		var s lintSettings
+		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := lint.setSettings(s); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		writeJSON(w, map[string]any{"settings": lint.getSettings()})
+	})
+	mux.HandleFunc("DELETE /api/lint/config", func(w http.ResponseWriter, r *http.Request) {
+		if err := lint.resetSettings(); err != nil {
+			httpError(w, err)
+			return
+		}
+		writeJSON(w, map[string]any{"settings": lint.getSettings()})
 	})
 
 	git := func(args ...string) (string, error) {
@@ -375,6 +401,35 @@ func main() {
 
 	// ---- 赤入れ依頼: 裏で claude -p を走らせる --------------------------------
 
+	claudeCfg := newClaudeConfig(*claudeConfigPath)
+	log.Printf("claude 設定: %s", *claudeConfigPath)
+	// モデル・エフォート・各モードのプロンプト雛形。GET で現在値と既定、PUT で差し替え、DELETE で既定に戻す
+	mux.HandleFunc("GET /api/claude/config", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, map[string]any{
+			"settings": claudeCfg.get(), "defaults": defaultClaudeSettings(),
+			"modes": claudeModes, "efforts": claudeEfforts[1:], "path": *claudeConfigPath,
+		})
+	})
+	mux.HandleFunc("PUT /api/claude/config", func(w http.ResponseWriter, r *http.Request) {
+		var s claudeSettings
+		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if err := claudeCfg.set(s); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		writeJSON(w, map[string]any{"settings": claudeCfg.get()})
+	})
+	mux.HandleFunc("DELETE /api/claude/config", func(w http.ResponseWriter, r *http.Request) {
+		if err := claudeCfg.reset(); err != nil {
+			httpError(w, err)
+			return
+		}
+		writeJSON(w, map[string]any{"settings": claudeCfg.get()})
+	})
+
 	var review struct {
 		sync.Mutex
 		running    bool
@@ -418,14 +473,12 @@ func main() {
 			http.Error(w, "赤入れの観点ファイルが読めない: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+		cs := claudeCfg.get()
+		tmpl, _ := cs.prompt(mode) // 未知の mode は下の default で弾く
 		var prompt string
 		switch mode {
-		case "diff":
-			prompt = fmt.Sprintf(reviewPromptFmt, doc, ann)
-		case "full":
-			prompt = fmt.Sprintf(fullReviewPromptFmt, doc, ann)
-		case "structure":
-			prompt = fmt.Sprintf(structurePromptFmt, doc, ann)
+		case "diff", "full", "structure":
+			prompt = fmt.Sprintf(tmpl, doc, ann)
 		case "consult":
 			if strings.TrimSpace(req.Quote) == "" {
 				http.Error(w, "quote required", http.StatusBadRequest)
@@ -435,7 +488,7 @@ func main() {
 			if note == "" {
 				note = "(特になし。何が引っかかっているかの言語化も含めて相談したい)"
 			}
-			prompt = fmt.Sprintf(consultPromptFmt, doc, req.Quote, note, ann)
+			prompt = fmt.Sprintf(tmpl, doc, req.Quote, note, ann)
 		case "lint":
 			if len(req.Hits) == 0 {
 				http.Error(w, "hits required", http.StatusBadRequest)
@@ -445,7 +498,7 @@ func main() {
 			for i, h := range req.Hits {
 				fmt.Fprintf(&b, "%d. 引用: %s\n   jev の判定: %s\n", i+1, h.Text, lint.describe(h.Flags, h.Scores))
 			}
-			prompt = fmt.Sprintf(lintPromptFmt, doc, b.String(), ann)
+			prompt = fmt.Sprintf(tmpl, doc, b.String(), ann)
 		default:
 			http.Error(w, "unknown mode", http.StatusBadRequest)
 			return
@@ -465,11 +518,13 @@ func main() {
 		review.running = true
 		review.mode = mode
 		review.output, review.errText = "", ""
+		cliArgs := cs.cliArgs()
 		go func() {
-			cmd := exec.Command("claude", "-p", prompt,
-				"--allowedTools", "Read,Grep,Glob,Write,Edit,"+
-					"Bash(git diff:*),Bash(git log:*),Bash(git status:*),Bash(git show:*),"+
-					"Bash(git add:*),Bash(git commit:*),Bash(npx textlint:*)")
+			args := append([]string{"-p", prompt,
+				"--allowedTools", "Read,Grep,Glob,Write,Edit," +
+					"Bash(git diff:*),Bash(git log:*),Bash(git status:*),Bash(git show:*)," +
+					"Bash(git add:*),Bash(git commit:*),Bash(npx textlint:*)"}, cliArgs...)
+			cmd := exec.Command("claude", args...)
 			cmd.Dir = absData
 			out, err := cmd.CombinedOutput()
 			review.Lock()
@@ -482,7 +537,7 @@ func main() {
 			}
 			log.Printf("review finished (err=%v, %d bytes output)", err, len(out))
 		}()
-		log.Printf("review started (mode: %s, dir: %s)", mode, absData)
+		log.Printf("review started (mode: %s, dir: %s, claude %v)", mode, absData, cliArgs)
 		writeJSON(w, map[string]any{"ok": true})
 	})
 
@@ -873,8 +928,9 @@ const structurePromptFmt = `あなたはブログの構成エディタです。�
 
 1. 対象の原稿 %[1]s を頭から最後まで通して読む。
 
-2. 観点は viewpoints の 6 章 (構成レビュー専用) だけを使う。原稿がまだ章立てされていない
-   場合の「構成の立ち上げ」の進め方も 6 章にある。
+2. 観点は viewpoints の 6 章 (構成レビュー専用) だけを使う。6 章にある通り、既存の章立てへの
+   指摘とは別に「書かれている内容から逆算した目次案」を記事全体への指摘として必ず 1 件出す
+   (原稿は喋った順のままの書き起こしであることが多い)。
    誤字脱字・文単位の言い回しの指摘はこのモードでは出さない。
 
 3. 指摘を %[2]s の annotations 配列に追記する
@@ -888,6 +944,8 @@ const structurePromptFmt = `あなたはブログの構成エディタです。�
 
 4. 指摘の形式:
 ` + annotationFormat + `
+   加えて、構成レビューの指摘には必ず "origin": "structure" を付ける
+   (エディタが「前回の構成レビューをまとめて消してやり直す」ときの目印にする)。
 
 5. 原稿本文 (.md) は一切書き換えない。git commit もしない
    (%[2]s への追記だけで終了する)。`
@@ -1058,6 +1116,16 @@ func safeName(w http.ResponseWriter, r *http.Request) (string, bool) {
 		return "", false
 	}
 	return name, true
+}
+
+// defaultLintConfigPath は jev 設定の既定の保存先 (~/.config/akaire/jev.json)。
+// 原稿のリポジトリに置くと akaire の自動コミット (git add -A) で記事ブランチに混ざるので外に置く
+func defaultLintConfigPath() string {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(dir, "akaire", "jev.json")
 }
 
 func writeJSON(w http.ResponseWriter, v any) {
