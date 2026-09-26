@@ -802,6 +802,27 @@ const imageField = StateField.define({
 
 // ---- 欄外カード -------------------------------------------------------------
 
+// 展開中のカード ID。同時に開くのは 1 枚だけ (展開したカードが上のカードに
+// 押し出されて画面外へ逃げるのを防ぐ)。renderCards で作り直しても引き継ぐ
+let expandedId = null;
+
+// カードのクリック: そのカードだけ展開し、本文のカーソルを指摘箇所へ合わせる。
+// 展開中のカードをもう一度クリックすると畳む
+function toggleCard(x, card) {
+  const open = !card.classList.contains("expanded");
+  for (const el of marginWrap.querySelectorAll(".card.expanded")) el.classList.remove("expanded");
+  expandedId = open ? x.ann.id : null;
+  card.classList.toggle("expanded", open);
+  if (open && x.from !== null) {
+    view.dispatch({
+      selection: { anchor: x.from },
+      effects: EditorView.scrollIntoView(x.from, { y: "center" }),
+    });
+    view.focus();
+  }
+  layoutCards();
+}
+
 function renderCards() {
   marginWrap.textContent = "";
   for (const x of anchored) {
@@ -816,12 +837,10 @@ function renderCards() {
       <div class="body"></div>
       <button class="resolve">✓ 対応した</button><button class="dismiss">この指摘は見送る</button>`;
     card.querySelector(".body").innerHTML = mdLite(a.body);
+    if (a.id === expandedId) card.classList.add("expanded");
     card.addEventListener("click", (ev) => {
       if (ev.target.classList.contains("dismiss") || ev.target.classList.contains("resolve")) return;
-      card.classList.toggle("expanded");
-      if (x.from !== null) {
-        view.dispatch({ effects: EditorView.scrollIntoView(x.from, { y: "center" }) });
-      }
+      toggleCard(x, card);
     });
     card.addEventListener("mouseenter", () => setActive(a.id, true));
     card.addEventListener("mouseleave", () => setActive(a.id, false));
@@ -860,6 +879,8 @@ function setActive(id, on) {
 // カードを対応行の高さに置き、重なりは下に押し出す
 function layoutCards() {
   if (!view) return;
+  // overflow: hidden でもページ内検索や自動スクロールで置き場がずれることがある
+  marginWrap.scrollTop = 0;
   const wrapTop = marginWrap.getBoundingClientRect().top;
   const items = [];
   for (const x of anchored) {
@@ -867,20 +888,44 @@ function layoutCards() {
     if (!card) continue;
     let want = Infinity; // 消化済みは最後に回す
     if (x.from !== null) {
-      const coords = view.coordsAtPos(Math.min(x.from, view.state.doc.length));
-      if (coords) want = coords.top - wrapTop;
+      const pos = Math.min(x.from, view.state.doc.length);
+      // coordsAtPos は描画範囲 (viewport) の外だと null を返す。その場合も
+      // 「見つからない」扱いにせず、行ブロックの推定位置で画面外の上下に置く
+      const coords = view.coordsAtPos(pos);
+      want = (coords ? coords.top : view.documentTop + view.lineBlockAt(pos).top) - wrapTop;
     }
     items.push({ card, want });
   }
   items.sort((a, b) => a.want - b.want);
-  let y = 8;
+  // 引用箇所が画面より上にあるカードは上端に積まず、本文と一緒に画面外へ流す
+  // (積むと見えている章のカードが見出しから離れて押し下げられる)
+  let y = -Infinity;
   const bottomStart = [];
-  for (const it of items) {
+  // 展開中のカードは「必ず画面内に収まる位置」に固定し、それより上のカードは
+  // 上方向へ押し出す (下に押し出すと展開カードが欄外の見えない所へ逃げる)
+  const pinIdx = items.findIndex((it) => it.want !== Infinity && it.card.classList.contains("expanded"));
+  let start = 0;
+  if (pinIdx >= 0) {
+    const pin = items[pinIdx];
+    const h = pin.card.offsetHeight;
+    const top = Math.max(8, Math.min(pin.want, marginWrap.clientHeight - h - 8));
+    pin.card.style.top = `${top}px`;
+    let above = top;
+    for (let i = pinIdx - 1; i >= 0; i--) {
+      const it = items[i];
+      above = Math.min(it.want, above - 10 - it.card.offsetHeight);
+      it.card.style.top = `${above}px`;
+    }
+    y = top + h + 10;
+    start = pinIdx + 1;
+  }
+  for (const it of items.slice(start)) {
     if (it.want === Infinity) { bottomStart.push(it); continue; }
     y = Math.max(y, it.want);
     it.card.style.top = `${y}px`;
     y += it.card.offsetHeight + 10;
   }
+  y = Math.max(y, 8);
   for (const it of bottomStart) {
     it.card.style.top = `${y}px`;
     y += it.card.offsetHeight + 10;
