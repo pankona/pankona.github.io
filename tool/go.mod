@@ -1,11 +1,11 @@
 module github.com/pankona/pankona.github.io/tool
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/google/go-github/v33 v33.0.0
 	github.com/pankona/japanese-jev-lint v0.0.0-20260921123255-a2372ac92a7c
-	golang.org/x/oauth2 v0.36.0
+	golang.org/x/oauth2 v0.37.0
 )
 
 require (
