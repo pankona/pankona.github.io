@@ -8,7 +8,6 @@ on:
       - 'flake.*'
       - '.envrc'
       - 'Makefile'
-      - 'print_dependencies.bash'
   pull_request:
     paths:
       - '.github/workflows/ci-nix.yml'
@@ -16,7 +15,6 @@ on:
       - 'flake.*'
       - '.envrc'
       - 'Makefile'
-      - 'print_dependencies.bash'
   schedule:
     # Every 10:42 JST
     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
@@ -39,5 +37,4 @@ jobs:
         run: |
           direnv allow .
           direnv export gha > "$GITHUB_ENV"
-      - run: make deps
       - run: make all

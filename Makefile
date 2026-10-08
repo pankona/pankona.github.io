@@ -13,6 +13,3 @@ ifndef EDITOR
 	EDITOR=vim
 endif
 	@cd $(CURDIR)/content/posts; $(EDITOR) `ls -t | peco`
-
-deps:
-	./print_dependencies.bash
