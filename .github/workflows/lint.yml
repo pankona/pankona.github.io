@@ -33,4 +33,4 @@ jobs:
       - uses: actions/checkout@v7
       - uses: rvben/rumdl@96c8520425eaf1b6d362e4a98754adf6ee604acb # v0
         with:
-          version: '0.2.5'
+          version: '0.2.78'
