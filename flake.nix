@@ -1,7 +1,7 @@
 {
   inputs = {
     # How to update the revision: `nix flake update --commit-lock-file`
-    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.xz";
+    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.zst";
   };
 
   outputs =
