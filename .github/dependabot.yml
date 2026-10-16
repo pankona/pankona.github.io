@@ -1,14 +1,23 @@
 version: 2
 updates:
+  # cooldown: リリース直後のバージョンは提案しない。
+  # 乗っ取られたバージョンが公開されてから検知・取り下げまでの猶予を取るためで、
+  # auto merge と組み合わせるときの主な防御線になる (GH-491)。
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'monthly'
+    cooldown:
+      default-days: 7
   - package-ecosystem: 'gomod'
     directory: '/'
     schedule:
       interval: 'monthly'
+    cooldown:
+      default-days: 7
   - package-ecosystem: 'gomod'
     directory: '/tool'
     schedule:
       interval: 'monthly'
+    cooldown:
+      default-days: 7
