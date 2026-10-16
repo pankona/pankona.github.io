@@ -6,9 +6,8 @@ on:
       - main
     paths:
       - 'tool/**'
+  # required checks に入れられるよう、PR では paths で絞らず常に走らせる (GH-491)
   pull_request:
-    paths:
-      - 'tool/**'
 
 jobs:
   ci-articlegen:

@@ -1,11 +1,11 @@
-name: Merge bot PR after CI
-on: pull_request
+name: Enable auto-merge for Dependabot PRs
+on:
+  pull_request:
+    types: [opened, reopened]
 
 permissions:
   contents: write
   pull-requests: write
-  # checks: read # For private repositories
-  # actions: read # For private repositories
 
 jobs:
   dependabot:
@@ -15,14 +15,12 @@ jobs:
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v3.1.0
-      - uses: actions/checkout@v7
-      - name: Wait other jobs
-        # if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
-        uses: kachick/wait-other-jobs@v4.0.0
-        timeout-minutes: 30
-      - name: Approve and merge
-        # if: ${{steps.metadata.outputs.update-type != 'version-update:semver-major'}}
-        run: gh pr review --approve "$PR_URL" && gh pr merge --auto --squash "$PR_URL"
+      # マージの判断とタイミングは GitHub の auto merge に任せる (required checks は ruleset 側)。
+      # ruleset に「Require a pull request before merging」が無いと enablePullRequestAutoMerge が失敗する (GH-491)
+      - name: Enable auto-merge
+        # major は人間が見る。github-actions の major は workflow の書き換えが伴うことが多い
+        if: ${{ steps.metadata.outputs.update-type != 'version-update:semver-major' }}
+        run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GITHUB_TOKEN: '${{ github.token }}'
+          GH_TOKEN: ${{ github.token }}
